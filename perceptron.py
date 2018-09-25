@@ -44,6 +44,16 @@ def backprob(Xin,Yth,list_size_layers,weights,bias):
                 grad_weight[col][perceptron][prevper]=grad_bias[col][perceptron]*list_out[col-1][prevper]
     return grad_weight,grad_bias
 
-
+def training(listXin,listYth,liste_size_layers,weights,bias,step,iterations):
+    for k in range(len(iterations)):
+        list_list_out=[[] for i in range(len(listXin))]
+        grad_weight=[[[0 for k in range(weights[k][i])]for i in range(len(weights[k]))]  for k in range(len(weights))]
+        grad_bias=[[0 for i in range(len(bias[k]))]  for k in range(len(bias))]
+        for data in range(len(listeXin)):
+            grads=backprob(listXin[data],listYth[data],list_size_layers,weights,bias)
+            weight+=#on fait une boucle pcq c est une liste
+            bias+=#same
+            #calcul du cout
+        return weights,bias
 
      
