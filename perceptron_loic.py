@@ -28,7 +28,7 @@ def erreur(th_output,outputs):#Inutile dans le programme actuel
     ouput = outputs[-1]
     res = 0 
     for i in range(len(ouput)):
-        res  = res + (th_output[i]-ouput[i])**2
+        res  = res + (th_output[i]-ouput[i][0])**2
     return res
 
 def gradient(inputs,total_weight,total_bias,th_output,output):
@@ -97,31 +97,26 @@ def initialise_weight_bias(Ln):
         res_b.append(mat_b)
     return (res_w,res_b)
     
-    
-(Wt,Bt) = initialise_weight_bias([2,2,1])   
-W = [np.array([[0.1,-0.8],[-0.3,0.6]]),np.array([[0.2,0.7]])]
-B = [np.array([[0.7],[-0.7]]),np.array([0.8])]
-N = 3000
-I = [ np.array([[int(i%4 == 0 or i%4 == 1)],[int(i%4 == 0 or i%4 == 3)]]) for i in range(N)]
-J = traite_entrees(I)
-O = [ np.array([int(i%4 == 1 or i%4 == 3)]) for i in range(N)]
-(nW,nB,E)=Stochastic(J,O,Wt,Bt,0.5)
-R11 = reseau(I[0],nW,nB)
-R10 = reseau(I[1],nW,nB)
-R00 = reseau(I[2],nW,nB)
-R01 = reseau(I[3],nW,nB)
-print("11: " + str(R11[-1][0]))
-print("10: " + str(R10[-1][0]))
-print("01: " + str(R01[-1][0]))
-print("00: " + str(R00[-1][0]))
-plt.plot(E)
-
-def xor(a,b):
-    res = reseau([[a],[b]],nW,nB)[-1][0]
-    if res > .5 :
-        return 1 
-    else :
-        return 0
-
-
+def le_xor():    
+    (Wt,Bt) = initialise_weight_bias([2,7,1])   
+    W = [np.array([[0.1,-0.8],[-0.3,0.6]]),np.array([[0.2,0.7]])]
+    B = [np.array([[0.7],[-0.7]]),np.array([0.8])]
+    N =15000
+    I = [ np.array([[int(i%4 == 0 or i%4 == 1)],[int(i%4 == 0 or i%4 == 3)]]) for i in range(N)]
+    J = traite_entrees(I)
+    O = [ np.array([int( (I[i][0][0] == 0 and I[i][1][0] == 1) or (I[i][0][0] == 0 and I[i][1][0] == 1) )]) for i in range(N)]
+    (nW,nB,E)=Stochastic(J,O,Wt,Bt,0.05)
+    R11 = reseau(J[0],nW,nB)
+    R10 = reseau(J[1],nW,nB)
+    R00 = reseau(J[2],nW,nB)
+    R01 = reseau(J[3],nW,nB)
+    #plt.plot(E)
+    plt.plot(E[::4])
+    plt.plot(E[1::4])
+    plt.plot(E[2::4])
+    plt.plot(E[3::4])
+    print("11: " + str(R11[-1][0]) + " ie. " + str(int(R11[-1][0][0] > .5)))
+    print("10: " + str(R10[-1][0]) + " ie. " + str(int(R10[-1][0][0] > .5)))
+    print("01: " + str(R01[-1][0]) + " ie. " + str(int(R01[-1][0][0] > .5)))
+    print("00: " + str(R00[-1][0]) + " ie. " + str(int(R00[-1][0][0] > .5)))
 
