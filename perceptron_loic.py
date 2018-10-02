@@ -7,6 +7,7 @@ Created on Sun Sep 30 15:13:36 2018
 import numpy as np
 import matplotlib.pyplot as plt
 import random as rd
+import idx2numpy as idx
 
 def sigmoid(x):
     return  1/(1+np.exp(-1*x)) #On choisit cette sigmoide car la dérivée est simple
@@ -99,12 +100,10 @@ def initialise_weight_bias(Ln):
     
 def le_xor():    
     (Wt,Bt) = initialise_weight_bias([2,7,1])   
-    W = [np.array([[0.1,-0.8],[-0.3,0.6]]),np.array([[0.2,0.7]])]
-    B = [np.array([[0.7],[-0.7]]),np.array([0.8])]
     N =15000
     I = [ np.array([[int(i%4 == 0 or i%4 == 1)],[int(i%4 == 0 or i%4 == 3)]]) for i in range(N)]
     J = traite_entrees(I)
-    O = [ np.array([int( (I[i][0][0] == 0 and I[i][1][0] == 1) or (I[i][0][0] == 0 and I[i][1][0] == 1) )]) for i in range(N)]
+    O = [ np.array([int( (I[i][0][0] == 1 and I[i][1][0] == 0) or (I[i][0][0] == 0 and I[i][1][0] == 1) )]) for i in range(N)]
     (nW,nB,E)=Stochastic(J,O,Wt,Bt,0.05)
     R11 = reseau(J[0],nW,nB)
     R10 = reseau(J[1],nW,nB)
@@ -120,3 +119,9 @@ def le_xor():
     print("01: " + str(R01[-1][0]) + " ie. " + str(int(R01[-1][0][0] > .5)))
     print("00: " + str(R00[-1][0]) + " ie. " + str(int(R00[-1][0][0] > .5)))
 
+
+with open(r"C:\Users\Loic\Documents\Projet Long HARPON\train-images.idx3-ubyte","rb") as train_images:
+    print(type(train_images))
+    train = idx.convert_from_file(train_images)
+    plt.map
+    
