@@ -32,7 +32,6 @@ def backprob(Xin,Yth,list_size_layers,weights,bias):
         grad_weight[col]=np.dot(list_out[col][None].T,np.array([grad_bias[col]]))
     return grad_weight,grad_bias
 
-
 def training(listXin,listYth,list_size_layers,weights,bias,step,iterations):
     for k in range(len(iterations)):
         delta_weight=[weights[k]*0 for k in range(len(weights))]
@@ -44,6 +43,10 @@ def training(listXin,listYth,list_size_layers,weights,bias,step,iterations):
                 delta_bias[col]+=gb[col]*step/len(gw)
         weights+=-delta_weight
         bias+=-delta_bias
+        cost=0
+        for k in range(len(listXin)):
+            cost+=(np.linalg.norm(listXin[k]-listYth[k])**2)/2
+        print(k,cost)
         return weights,bias
 
 
