@@ -29,7 +29,7 @@ def erreur(inputs,total_weight,total_bias,th_output):#Inutile dans le programme 
         res  = res + (th_output[i]-ouput[i])**2
     return res
 
-def gradient(inputs,total_weight,total_bias,th_output,outpup):
+def gradient(inputs,total_weight,total_bias,th_output,output):
     n = len(total_weight) #nombres de matrices donc de couches
     total_grad_weight = [np.array([]) for i in range(n)] #On va ajouter les matrices au fur et à mesure
     total_grad_bias = [np.array([]) for i in range(n)]
@@ -54,20 +54,33 @@ def gradient(inputs,total_weight,total_bias,th_output,outpup):
     return (total_grad_weight,total_grad_bias)
   
 
-
+def Stochastic(total_inputs,total_ouputs,ini_weight,ini_bias):
+    n = len(total_inputs)
+    W = ini_weight
+    B = ini_bias
+    for i in range(n):
+        I = total_inputs[i]
+        O = total_ouputs[i]
+        R = reseau(I,W,B)
+        (gW,gB) = gradient(I,W,B,O,R)
+        W = [W[i] - .1*gW[i] for i in range(len(W))]
+        B = [B[i] - .1*gB[i] for i in range(len(B))]
+    return (W,B)
               
-W = [np.array([[0.5,0.5],[0.5,0.5]]),np.array([[0.5,0.5]])]
+W = [np.array([[0.1,0.8],[0.3,0.4]]),np.array([[0.2,0.7]])]
 B = [np.array([[0],[0]]),np.array([0])]
-I = np.array([[1],[0]])
-O = np.array([1])
+I = [np.array([[0.5],[-0.5]]),np.array([[0.5],[0.5]]),np.array([[-0.5],[-0.5]]),np.array([[-0.5],[0.5]])]*256
+O = [ np.array([int(i == 0 or i == 3)]) for i in range(1024)]
+(nW,nB)=Stochastic(I,O,W,B)
+R01 = reseau(I[0],nW,nB)
+R11 = reseau(I[1],nW,nB)
+R00 = reseau(I[2],nW,nB)
+R10 = reseau(I[3],nW,nB)
 
-R = reseau(I,W,B)
-(gW,gB) = gradient(I,W,B,O,R)
-nW = [W[i] - gW[i] for i in range(len(W))]
-nB = [B[i] - gB[i] for i in range(len(B))]
-E = erreur(I,W,B,O)
-nE = erreur(I,nW,nB,O)
-nR = reseau(I,nW,nB)
+R01 = reseau(I[0],nW,nB)
+E01 = erreur(I[0],nW,nB,O[0])
+(nnW,nnB) = gradient(I[0],nW,nB,O[0],R01)
+E02 = erreur(I[0],nnW,nnB,O[0])
 
 
 
