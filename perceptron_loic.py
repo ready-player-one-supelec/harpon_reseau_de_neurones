@@ -24,8 +24,8 @@ def reseau(inputs,total_weight,total_bias):
         res.append(ouptut)
     return res
 
-def erreur(inputs,total_weight,total_bias,th_output):#Inutile dans le programme actuel
-    ouput = reseau(inputs,total_weight,total_bias)[-1]
+def erreur(th_output,outputs):#Inutile dans le programme actuel
+    ouput = outputs[-1]
     res = 0 
     for i in range(len(ouput)):
         res  = res + (th_output[i]-ouput[i])**2
@@ -60,14 +60,16 @@ def Stochastic(total_inputs,total_ouputs,ini_weight,ini_bias,vitesse):
     n = len(total_inputs)
     W = ini_weight
     B = ini_bias
+    E = []
     for i in range(n):
         I = total_inputs[i]
         O = total_ouputs[i]
         R = reseau(I,W,B)
+        E.append(erreur(O,R))
         (gW,gB) = gradient(I,W,B,O,R)
         W = [W[i] - vitesse*gW[i] for i in range(len(W))]
         B = [B[i] - vitesse*gB[i] for i in range(len(B))]
-    return (W,B)
+    return (W,B,E)
 
 def traite_entrees(total_inputs):
     n = len(total_inputs)
@@ -85,15 +87,25 @@ def traite_entrees(total_inputs):
             res[i][j][0] = res[i][j][0]/norm
     return res
 
-def initialise_weight(Ln):
-      return 0
-              
+def initialise_weight_bias(Ln):
+    res_w = []
+    res_b = []
+    for i in range(1,len(Ln)):
+        mat_w = np.array([[(rd.random()-0.5)*2.5 for j in range(Ln[i-1])] for k in range(Ln[i])])
+        res_w.append(mat_w)
+        mat_b = np.array([[(rd.random()-0.5)*2.5] for k in range(Ln[i])])
+        res_b.append(mat_b)
+    return (res_w,res_b)
+    
+    
+(Wt,Bt) = initialise_weight_bias([2,2,1])   
 W = [np.array([[0.1,-0.8],[-0.3,0.6]]),np.array([[0.2,0.7]])]
 B = [np.array([[0.7],[-0.7]]),np.array([0.8])]
-I = [ np.array([[int(i%4 == 0 or i%4 == 1)],[int(i%4 == 0 or i%4 == 3)]]) for i in range(2048)]
+N = 3000
+I = [ np.array([[int(i%4 == 0 or i%4 == 1)],[int(i%4 == 0 or i%4 == 3)]]) for i in range(N)]
 J = traite_entrees(I)
-O = [ np.array([int(i%4 == 1 or i%4 == 3)]) for i in range(2048)]
-(nW,nB)=Stochastic(J,O,W,B,1)
+O = [ np.array([int(i%4 == 1 or i%4 == 3)]) for i in range(N)]
+(nW,nB,E)=Stochastic(J,O,Wt,Bt,0.5)
 R11 = reseau(I[0],nW,nB)
 R10 = reseau(I[1],nW,nB)
 R00 = reseau(I[2],nW,nB)
@@ -102,6 +114,7 @@ print("11: " + str(R11[-1][0]))
 print("10: " + str(R10[-1][0]))
 print("01: " + str(R01[-1][0]))
 print("00: " + str(R00[-1][0]))
+plt.plot(E)
 
 def xor(a,b):
     res = reseau([[a],[b]],nW,nB)[-1][0]
