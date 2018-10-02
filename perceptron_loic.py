@@ -5,6 +5,8 @@ Created on Sun Sep 30 15:13:36 2018
 @author: Loic
 """
 import numpy as np
+import matplotlib.pyplot as plt
+import random as rd
 
 def sigmoid(x):
     return  1/(1+np.exp(-1*x)) #On choisit cette sigmoide car la dérivée est simple
@@ -54,7 +56,7 @@ def gradient(inputs,total_weight,total_bias,th_output,output):
     return (total_grad_weight,total_grad_bias)
   
 
-def Stochastic(total_inputs,total_ouputs,ini_weight,ini_bias):
+def Stochastic(total_inputs,total_ouputs,ini_weight,ini_bias,vitesse):
     n = len(total_inputs)
     W = ini_weight
     B = ini_bias
@@ -63,24 +65,50 @@ def Stochastic(total_inputs,total_ouputs,ini_weight,ini_bias):
         O = total_ouputs[i]
         R = reseau(I,W,B)
         (gW,gB) = gradient(I,W,B,O,R)
-        W = [W[i] - .1*gW[i] for i in range(len(W))]
-        B = [B[i] - .1*gB[i] for i in range(len(B))]
+        W = [W[i] - vitesse*gW[i] for i in range(len(W))]
+        B = [B[i] - vitesse*gB[i] for i in range(len(B))]
     return (W,B)
-              
-W = [np.array([[0.1,0.8],[0.3,0.4]]),np.array([[0.2,0.7]])]
-B = [np.array([[0],[0]]),np.array([0])]
-I = [np.array([[0.5],[-0.5]]),np.array([[0.5],[0.5]]),np.array([[-0.5],[-0.5]]),np.array([[-0.5],[0.5]])]*256
-O = [ np.array([int(i == 0 or i == 3)]) for i in range(1024)]
-(nW,nB)=Stochastic(I,O,W,B)
-R01 = reseau(I[0],nW,nB)
-R11 = reseau(I[1],nW,nB)
-R00 = reseau(I[2],nW,nB)
-R10 = reseau(I[3],nW,nB)
 
-R01 = reseau(I[0],nW,nB)
-E01 = erreur(I[0],nW,nB,O[0])
-(nnW,nnB) = gradient(I[0],nW,nB,O[0],R01)
-E02 = erreur(I[0],nnW,nnB,O[0])
+def traite_entrees(total_inputs):
+    n = len(total_inputs)
+    m = len(total_inputs[0])
+    moy = np.array([[0] for i in range(m)])
+    for i in range(n):
+        moy = moy + total_inputs[i]
+    res = [total_inputs[i] - moy/n for i in range(n)]
+    for i in range(n):
+        norm = 0
+        for j in range(m):
+            norm += (res[i][j][0])**2
+        norm = np.sqrt(norm)
+        for j in range(m):
+            res[i][j][0] = res[i][j][0]/norm
+    return res
+
+def initialise_weight(Ln):
+      return 0
+              
+W = [np.array([[0.1,-0.8],[-0.3,0.6]]),np.array([[0.2,0.7]])]
+B = [np.array([[0.7],[-0.7]]),np.array([0.8])]
+I = [ np.array([[int(i%4 == 0 or i%4 == 1)],[int(i%4 == 0 or i%4 == 3)]]) for i in range(2048)]
+J = traite_entrees(I)
+O = [ np.array([int(i%4 == 1 or i%4 == 3)]) for i in range(2048)]
+(nW,nB)=Stochastic(J,O,W,B,1)
+R11 = reseau(I[0],nW,nB)
+R10 = reseau(I[1],nW,nB)
+R00 = reseau(I[2],nW,nB)
+R01 = reseau(I[3],nW,nB)
+print("11: " + str(R11[-1][0]))
+print("10: " + str(R10[-1][0]))
+print("01: " + str(R01[-1][0]))
+print("00: " + str(R00[-1][0]))
+
+def xor(a,b):
+    res = reseau([[a],[b]],nW,nB)[-1][0]
+    if res > .5 :
+        return 1 
+    else :
+        return 0
 
 
 
