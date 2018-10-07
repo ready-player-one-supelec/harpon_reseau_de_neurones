@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 import random as rd
 import idx2numpy as idx
 
+#%% Neural Network 
+
 def sigmoid(x):
     return  1/(1+np.exp(-1*x)) #On choisit cette sigmoide car la dérivée est simple
 
@@ -56,6 +58,7 @@ def gradient(inputs,total_weight,total_bias,th_output,output):
                 total_grad_weight[i][j][k] += summ*grad_base_weight
     return (total_grad_weight,total_grad_bias)
   
+#%% Stochastic learning
 
 def Stochastic(total_inputs,total_ouputs,ini_weight,ini_bias,vitesse):
     n = len(total_inputs)
@@ -70,7 +73,10 @@ def Stochastic(total_inputs,total_ouputs,ini_weight,ini_bias,vitesse):
         (gW,gB) = gradient(I,W,B,O,R)
         W = [W[i] - vitesse*gW[i] for i in range(len(W))]
         B = [B[i] - vitesse*gB[i] for i in range(len(B))]
+        if i/n*1000%1 == 0 :
+            print(str(i/n*100) + " % done")
     return (W,B,E)
+
 
 def traite_entrees(total_inputs):
     n = len(total_inputs)
@@ -92,19 +98,21 @@ def initialise_weight_bias(Ln):
     res_w = []
     res_b = []
     for i in range(1,len(Ln)):
-        mat_w = np.array([[(rd.random()-0.5)*2.5 for j in range(Ln[i-1])] for k in range(Ln[i])])
+        mat_w = np.array([[(rd.random()-0.5)*2 for j in range(Ln[i-1])] for k in range(Ln[i])])
         res_w.append(mat_w)
-        mat_b = np.array([[(rd.random()-0.5)*2.5] for k in range(Ln[i])])
+        mat_b = np.array([[(rd.random()-0.5)*2] for k in range(Ln[i])])
         res_b.append(mat_b)
     return (res_w,res_b)
-    
+
+#%% Xor
+   
 def le_xor():    
-    (Wt,Bt) = initialise_weight_bias([2,7,1])   
-    N =15000
+    (Wt,Bt) = initialise_weight_bias([2,3,1])   
+    N =10000
     I = [ np.array([[int(i%4 == 0 or i%4 == 1)],[int(i%4 == 0 or i%4 == 3)]]) for i in range(N)]
     J = traite_entrees(I)
     O = [ np.array([int( (I[i][0][0] == 1 and I[i][1][0] == 0) or (I[i][0][0] == 0 and I[i][1][0] == 1) )]) for i in range(N)]
-    (nW,nB,E)=Stochastic(J,O,Wt,Bt,0.05)
+    (nW,nB,E)= Stochastic(J,O,Wt,Bt,0.05)
     R11 = reseau(J[0],nW,nB)
     R10 = reseau(J[1],nW,nB)
     R00 = reseau(J[2],nW,nB)
@@ -119,9 +127,39 @@ def le_xor():
     print("01: " + str(R01[-1][0]) + " ie. " + str(int(R01[-1][0][0] > .5)))
     print("00: " + str(R00[-1][0]) + " ie. " + str(int(R00[-1][0][0] > .5)))
 
+#%% MNIST
 
-with open(r"C:\Users\Loic\Documents\Projet Long HARPON\train-images.idx3-ubyte","rb") as train_images:
-    print(type(train_images))
-    train = idx.convert_from_file(train_images)
-    plt.map
-    
+def MNIST(nbr):
+    with open(r"C:\Users\Loic\Documents\Projet Long HARPON\train-images.idx3-ubyte","rb") as train_images:
+        with open(r"C:\Users\Loic\Documents\Projet Long HARPON\train-labels.idx1-ubyte","rb") as train_results:
+            print("Strating preprocessing data")
+            train_input = idx.convert_from_file(train_images)
+            train = np.array([np.zeros(784).reshape(784,1) for i in range(len(train_input))])
+            result_input = idx.convert_from_file(train_results)
+            result = np.array([[[int(i == result_input[j])] for i in range(10)] for j in range(len(train_input))])
+            for j in range(len(train)):
+                train[j] = train_input[j].reshape(28*28,1)
+            print("Ending preprocessing data")
+            print("Strating generating weight and bias")
+            (W,B) = initialise_weight_bias([784,16,16,10])
+            print("Ending generating weight and bias")
+            print("Starting training neural network")
+            (nW,nB,E)=Stochastic(train[:nbr],result[:nbr],W,B,0.05)
+            print("Ending training neural network")
+            success = np.array([0,0])
+            for i in range(10000):
+                res = reseau(train[nbr+i],nW,nB)
+                if res[-1][result_input[nbr+i]] == np.max(res[-1]):
+                    success[1] +=  1
+                success[0] += 1
+                if i/1000%1 == 0 :
+                    print("success rate:  " + str(success[1]/success[0]))
+            return (nW,nB,E)
+
+
+(W,B,E) = MNIST(30000)
+                
+                    
+                    
+                     
+        
