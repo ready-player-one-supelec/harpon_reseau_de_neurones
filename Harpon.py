@@ -92,7 +92,7 @@ def stochastic_training(total_inputs,total_ouputs,ini_weight,ini_bias,vitesse,re
     return (W,B,E)
 
 
-def traite_entrees(total_inputs): #Work in progress do not use
+def traite_entrees(total_inputs): #It works maggle
     n = len(total_inputs)
     m = len(total_inputs[0])
     moy = np.array([0 for i in range(m)])
@@ -102,10 +102,10 @@ def traite_entrees(total_inputs): #Work in progress do not use
     for i in range(n):
         norm = 0
         for j in range(m):
-            norm += (res[i][j][0])**2
+            norm += (res[i][j])**2
         norm = np.sqrt(norm)
         for j in range(m):
-            res[i][j][0] = res[i][j][0]/norm
+            res[i][j] = res[i][j]/norm
     return res
 
 
@@ -115,7 +115,7 @@ def le_xor_batch(pas,reseau = [4,1]):
     (Wt,Bt) = random_w_b([0,0],reseau)   
     N =10000
     I = [ np.array([int(i%4 == 0 or i%4 == 1),int(i%4 == 0 or i%4 == 3)]) for i in range(4)]
-    O = [ np.array([int( (I[i][0] == 1 and I[i][1] == 0) or (I[i][0] == 0 and I[i][1] == 1) )]) for i in range(4)]
+    O = [ np.array([int( (I[i][0] > 0 and I[i][1] <= 0) or (I[i][0] <= 0 and I[i][1] > 0) )]) for i in range(4)]
     (nW,nB,E)= batch_training(I,O,reseau,Wt,Bt,pas,N)
     R11 = front_prop(I[0],reseau,nW,nB)
     R10 = front_prop(I[1],reseau,nW,nB)
@@ -131,7 +131,8 @@ def le_xor_batch(pas,reseau = [4,1]):
 def le_xor_stochastic(pas,N = 2000, reseau = [4,1]):
     (Wt,Bt) = random_w_b([0,0],reseau)   
     I = [ np.array([int(i%4 == 0 or i%4 == 1),int(i%4 == 0 or i%4 == 3)]) for i in range(N)]
-    O = [ np.array([int( (I[i][0] == 1 and I[i][1] == 0) or (I[i][0] == 0 and I[i][1] == 1) )]) for i in range(N)]
+    I = traite_entrees(I)
+    O = [ np.array([int( (I[i][0] > 0 and I[i][1] < 0) or (I[i][0] < 0 and I[i][1] > 0) )]) for i in range(N)]
     (nW,nB,E)= stochastic_training(I,O,Wt,Bt,pas,reseau)
     R11 = front_prop(I[0],reseau,nW,nB)
     R10 = front_prop(I[1],reseau,nW,nB)
