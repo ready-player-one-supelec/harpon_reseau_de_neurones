@@ -79,7 +79,7 @@ def Stochastic(total_inputs,total_ouputs,ini_weight,ini_bias,vitesse):
         B = [B[i] - vitesse*gB[i] for i in range(len(B))]
         if i/n*1000%1 == 0 :
             ETA = round(((time.time()-start_time)*(n-i)/i)) if i>0 else 0
-            ETA = f"{ETA//60}min {ETA%60}sec" if ETA>60 else f"{ETA}sec"
+            ETA = f"{ETA//3600}h {(ETA%3600)//60}min {ETA%60}sec" if ETA>60 else f"{ETA//60}min {ETA%60}sec" if ETA>60 else f"{ETA}sec"
             if i>0:
                 print(f"{round(i/n*100, 3)}% done (ETA: {ETA})")
     return (W,B,E)
@@ -165,8 +165,8 @@ def MNIST(nbr):
                     print("success rate:  " + str(success[1]/success[0]))
             return (nW,nB,E)
 
-le_xor()
-# (W,B,E) = MNIST(30000)
+# le_xor()
+(W,B,E) = MNIST(30000)
                 
                     
                     
