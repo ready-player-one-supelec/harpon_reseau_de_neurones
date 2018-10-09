@@ -1,0 +1,8 @@
+# Configuration
+conf.py
+
+# Data files
+*.*-ubyte
+
+# Python files
+__pycache__
