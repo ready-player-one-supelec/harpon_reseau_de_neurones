@@ -1,0 +1,2 @@
+train_images = "train-images.idx3-ubyte"
+train_labels = "train-labels.idx1-ubyte"
