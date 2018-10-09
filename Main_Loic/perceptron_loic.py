@@ -76,8 +76,7 @@ def Stochastic(total_inputs,total_ouputs,ini_weight,ini_bias,vitesse):
         W = [W[i] - vitesse*gW[i] for i in range(len(W))]
         B = [B[i] - vitesse*gB[i] for i in range(len(B))]
         if i/n*1000%1 == 0 :
-            print(f"{round(i/n*100, 3)}% done")
-            # print(str(round(i/n*100)) + " % done")
+            print(f"{round(i/n*100, 3)}% done (ETA: min")
     return (W,B,E)
 
 
@@ -125,10 +124,11 @@ def le_xor():
     plt.plot(E[1::4])
     plt.plot(E[2::4])
     plt.plot(E[3::4])
-    print("11: " + str(R11[-1][0]) + " ie. " + str(int(R11[-1][0][0] > .5)))
-    print("10: " + str(R10[-1][0]) + " ie. " + str(int(R10[-1][0][0] > .5)))
-    print("01: " + str(R01[-1][0]) + " ie. " + str(int(R01[-1][0][0] > .5)))
-    print("00: " + str(R00[-1][0]) + " ie. " + str(int(R00[-1][0][0] > .5)))
+    # plt.show()
+    print(f"[1,1]: {round(R11[-1][0][0], 4)} ie. {int(R11[-1][0][0] > 0.5)}")
+    print(f"[1,0]: {round(R10[-1][0][0], 4)} ie. {int(R10[-1][0][0] > 0.5)}")
+    print(f"[0,1]: {round(R01[-1][0][0], 4)} ie. {int(R01[-1][0][0] > 0.5)}")
+    print(f"[0,0]: {round(R00[-1][0][0], 4)} ie. {int(R00[-1][0][0] > 0.5)}")
 
 #%% MNIST
 
@@ -159,8 +159,8 @@ def MNIST(nbr):
                     print("success rate:  " + str(success[1]/success[0]))
             return (nW,nB,E)
 
-
-(W,B,E) = MNIST(30000)
+le_xor()
+# (W,B,E) = MNIST(30000)
                 
                     
                     
