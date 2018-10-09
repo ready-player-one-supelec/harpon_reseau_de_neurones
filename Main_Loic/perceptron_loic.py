@@ -4,6 +4,7 @@ Created on Sun Sep 30 15:13:36 2018
 
 @author: Loic
 """
+import time
 import numpy as np
 import matplotlib.pyplot as plt
 import random as rd
@@ -63,6 +64,7 @@ def gradient(inputs,total_weight,total_bias,th_output,output):
 #%% Stochastic learning
 
 def Stochastic(total_inputs,total_ouputs,ini_weight,ini_bias,vitesse):
+    start_time = time.time()
     n = len(total_inputs)
     W = ini_weight
     B = ini_bias
@@ -76,7 +78,10 @@ def Stochastic(total_inputs,total_ouputs,ini_weight,ini_bias,vitesse):
         W = [W[i] - vitesse*gW[i] for i in range(len(W))]
         B = [B[i] - vitesse*gB[i] for i in range(len(B))]
         if i/n*1000%1 == 0 :
-            print(f"{round(i/n*100, 3)}% done (ETA: min")
+            ETA = round(((time.time()-start_time)*(n-i)/i)) if i>0 else 0
+            ETA = f"{ETA//60}min {ETA%60}sec" if ETA>60 else f"{ETA}sec"
+            if i>0:
+                print(f"{round(i/n*100, 3)}% done (ETA: {ETA})")
     return (W,B,E)
 
 
@@ -120,11 +125,12 @@ def le_xor():
     R00 = reseau(J[2],nW,nB)
     R01 = reseau(J[3],nW,nB)
     #plt.plot(E)
-    plt.plot(E[::4])
-    plt.plot(E[1::4])
-    plt.plot(E[2::4])
-    plt.plot(E[3::4])
-    # plt.show()
+    plt.plot(E[::4], label="Erreur 1x1")
+    plt.plot(E[1::4], label="Erreur 1x0")
+    plt.plot(E[2::4], label="Erreur 0x1")
+    plt.plot(E[3::4], label="Erreur 0x0")
+    plt.legend()
+    plt.show()
     print(f"[1,1]: {round(R11[-1][0][0], 4)} ie. {int(R11[-1][0][0] > 0.5)}")
     print(f"[1,0]: {round(R10[-1][0][0], 4)} ie. {int(R10[-1][0][0] > 0.5)}")
     print(f"[0,1]: {round(R01[-1][0][0], 4)} ie. {int(R01[-1][0][0] > 0.5)}")
