@@ -17,6 +17,12 @@ def sigmoid(x):
 def dsigmoid(m): #Work in progress do not use
     return m*(np.ones(len(m)) - m)
 
+def tanh(x):
+    return np.tanh(x)
+
+def dtanh(m):
+    return np.ones(len(m))-m*m
+
 def front_prop(inputs,reseau,weights,bias,activation = sigmoid):
     #weights is a list of arrays (lines:layers[k],colons:layers[k+1]), bias is a list of arrays 
     #returns the list of results of perceptrons
