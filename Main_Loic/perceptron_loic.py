@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 import random as rd
 import idx2numpy as idx
 
+import conf
+
 #%% Neural Network 
 
 def sigmoid(x):
@@ -74,7 +76,8 @@ def Stochastic(total_inputs,total_ouputs,ini_weight,ini_bias,vitesse):
         W = [W[i] - vitesse*gW[i] for i in range(len(W))]
         B = [B[i] - vitesse*gB[i] for i in range(len(B))]
         if i/n*1000%1 == 0 :
-            print(str(i/n*100) + " % done")
+            print(f"{round(i/n*100, 3)}% done")
+            # print(str(round(i/n*100)) + " % done")
     return (W,B,E)
 
 
@@ -130,9 +133,9 @@ def le_xor():
 #%% MNIST
 
 def MNIST(nbr):
-    with open(r"C:\Users\Loic\Documents\Projet Long HARPON\train-images.idx3-ubyte","rb") as train_images:
-        with open(r"C:\Users\Loic\Documents\Projet Long HARPON\train-labels.idx1-ubyte","rb") as train_results:
-            print("Strating preprocessing data")
+    with open(conf.train_images,"rb") as train_images:
+        with open(conf.train_labels,"rb") as train_results:
+            print("Starting preprocessing data")
             train_input = idx.convert_from_file(train_images)
             train = np.array([np.zeros(784).reshape(784,1) for i in range(len(train_input))])
             result_input = idx.convert_from_file(train_results)
@@ -140,7 +143,7 @@ def MNIST(nbr):
             for j in range(len(train)):
                 train[j] = train_input[j].reshape(28*28,1)
             print("Ending preprocessing data")
-            print("Strating generating weight and bias")
+            print("Starting generating weight and bias")
             (W,B) = initialise_weight_bias([784,16,16,10])
             print("Ending generating weight and bias")
             print("Starting training neural network")
