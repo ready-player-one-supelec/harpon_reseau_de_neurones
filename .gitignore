@@ -3,6 +3,7 @@
 
 # LOCAL
 Pipfile.lock
+conf.py
 
 # DATA
 *.idx*
