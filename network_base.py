@@ -72,5 +72,7 @@ def random_w_b(inputs, network):
         bias: List of p Arrays of layer[k] bias
     """
     weights = [2*np.random.random((len(inputs), network[0]))-np.ones((len(inputs), network[0]))]+[2*np.random.random((network[k], network[k+1]))-np.ones((network[k], network[k+1])) for k in range(len(network)-1)]
-    bias = [np.zeros(network[k]) for k in range(len(network))]
+    # weights = [1 / np.sqrt(len(inputs)) * np.random.randn(len(inputs), network[0])] + [1 / np.sqrt(len(inputs)) * np.random.randn(network[k], network[k+1]) for k in range(len(network)-1)]
+    # bias = [np.zeros(network[k]) for k in range(len(network))]
+    bias = [1 / np.sqrt(len(inputs)) * np.random.randn(network[k]) for k in range(len(network))]
     return weights, bias
