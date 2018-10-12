@@ -5,55 +5,15 @@ Created on Tue Oct  9 17:10:09 2018
 @author: Loic
 """
 
-
+import time
 import random as rd
+
 import numpy as np
 import matplotlib.pyplot as plt
 import idx2numpy as idx
+
 from conf import train_images_path, train_labels_path
-
-#%% Neural Network Base
-
-def sigmoid(x):
-    return  1/(1+np.exp(-x)) #On choisit cette sigmoide car la dérivée est simple
-
-def dsigmoid(m): #Work in progress do not use
-    return m*(np.ones(len(m)) - m)
-
-def front_prop(inputs, reseau, weights, bias, activation=sigmoid):
-    #weights is a list of arrays (lines:layers[k],colons:layers[k+1]), bias is a list of arrays
-    #returns the list of results of perceptrons
-    #reseau n inclut pas le layer d'entree
-    #les weights et biais sont comptés avec leurs colonnes de sortie
-    #list_out inclue l'entrée donc len(list_out)=len(reseau)+1
-    list_out = [np.zeros(reseau[k]) for k in range(len(reseau))]
-    list_out = [np.array(inputs)]+list_out
-    for col in range(len(reseau)):
-        sig_in = np.dot(list_out[col], weights[col]) + bias[col]
-        for per, sig_in_per in enumerate(sig_in):
-            list_out[col+1][per] = activation(sig_in_per)
-    return list_out
-
-
-def backprop(inputs, th_output, reseau, weights, bias, derivee=dsigmoid):
-    #backpropagation:dc/daijk=dc/dbjk *Yik-1 et dc/bik=SUMj[dc/dbjk+1*aijk+1] *Yik+1(1-Yik+1)
-    #matriciellement DAk=DBk.Yk-1 et DBk=Ak+1 . DBk+1*Yk+1 *(1-Yk+1)
-    list_out = front_prop(inputs, reseau, weights, bias)
-    grad_weight = [weights[k]*0 for k in range(len(weights))]
-    grad_bias = [bias[k]*0 for k in range(len(bias))]
-    #init
-    grad_bias[-1] = derivee(list_out[-1]) * (list_out[-1]-np.array(th_output))
-    grad_weight[-1] = np.dot(list_out[-2][None].T, grad_bias[-1][None])
-    #recurrence
-    for col in range(len(list_out)-3, -1, -1):
-        grad_bias[col] = np.dot(weights[col+1], grad_bias[col+1]) * derivee(list_out[col+1])
-        grad_weight[col] = np.dot(list_out[col][None].T, grad_bias[col][None])
-    return grad_weight, grad_bias, np.linalg.norm(th_output-list_out[-1])/2
-
-def random_w_b(inputs, reseau):
-    weights = [2*np.random.random((len(inputs), reseau[0]))-np.ones((len(inputs), reseau[0]))]+[2*np.random.random((reseau[k], reseau[k+1]))-np.ones((reseau[k], reseau[k+1])) for k in range(len(reseau)-1)]
-    bias = [np.zeros(reseau[k]) for k in range(len(reseau))]
-    return weights, bias
+from network_base import front_prop, backprop, random_w_b
 
 #%% Batch Training
 
@@ -83,6 +43,7 @@ def stochastic_training(total_inputs, total_ouputs, ini_weight, ini_bias, vitess
     W = ini_weight
     B = ini_bias
     E = []
+    start_time = time.time()
     for j in range(iterations):
         for i in range(n):
             I = total_inputs[i]
@@ -92,7 +53,11 @@ def stochastic_training(total_inputs, total_ouputs, ini_weight, ini_bias, vitess
             W = [W[i] - vitesse*gW[i] for i in range(len(W))]
             B = [B[i] - vitesse*gB[i] for i in range(len(B))]
             if i/n*100*j/iterations%1 == 0:
-                print(str(i/n*100*(j+1)/iterations) + " % done")
+                ETA = round(((time.time()-start_time)*(n-i)/i)) if i > 0 else 0
+                ETA = f"{ETA//3600}h {(ETA%3600)//60}min {ETA%60}sec" if ETA > 60 else f"{ETA//60}min {ETA%60}sec" if ETA > 60 else f"{ETA}sec"
+                if i > 0:
+                    print(f"{round(i/n*100, 3)}% done (ETA: {ETA})")
+                # print(str(i/n*100*(j+1)/iterations) + " % done")
     return (W, B, E)
 
 
@@ -205,4 +170,6 @@ def image(k=-1): #Affiche les iamges de MNIST pour peu qu'on ai lancé datas ava
         k = rd.randint(0, 60000-1)
     res = np.array([[[int((1-train[k][j+28*i])*255) for ii in range(3)] for j in range(len(train_input[k]))] for i in range(len(train_input[k]))])
     plt.imshow(res)
+
+image()
                     
