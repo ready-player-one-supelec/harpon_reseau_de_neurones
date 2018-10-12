@@ -7,6 +7,12 @@ def sigmoid(x):
 def dsigmoid(m): #Work in progress do not use
     return m * (np.ones(len(m)) - m)
 
+def tanh(x):
+    return np.tanh(x)
+
+def dtanh(m):
+    return np.ones(len(m))-m*m
+
 def front_prop(inputs, network, weights, bias, activation=sigmoid):
     """Compute the output of the network
     Parameters:
@@ -40,7 +46,7 @@ def backprop(inputs, th_output, network, weights, bias, derivative=dsigmoid):
     Output:
         grad_weight: 
         grad_bias:
-        
+
     """
     #backpropagation:dc/daijk=dc/dbjk *Yik-1 et dc/bik=SUMj[dc/dbjk+1*aijk+1] *Yik+1(1-Yik+1)
     #matriciellement DAk=DBk.Yk-1 et DBk=Ak+1 . DBk+1*Yk+1 *(1-Yk+1)

@@ -36,6 +36,10 @@ def batch_training(L_inputs, L_th_output, reseau, weights, bias, rate, iteration
     return weights, bias, error
 
 
+def minibatch_training(L_inputs, L_th_output, reseau, minibatch, weights=random_w_b(L_inputs[0],reseau)[0], bias=random_w_b(L_inputs[0],reseau)[1]):
+    pass 
+
+
 #%% Stochastic learning
 
 def stochastic_training(total_inputs, total_ouputs, ini_weight, ini_bias, vitesse, reseau, iterations=1):
