@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import idx2numpy as idx
 
 from conf import train_images_path, train_labels_path
-from network_base import front_prop, backprop, random_w_b
+from network_base import front_prop, backprop, random_w_b, save_network
 
 #%% Batch Training
 
@@ -56,11 +56,11 @@ def stochastic_training(total_inputs, total_ouputs, ini_weight, ini_bias, vitess
             E.append(ee)
             W = [W[i] - vitesse*gW[i] for i in range(len(W))]
             B = [B[i] - vitesse*gB[i] for i in range(len(B))]
-            if i/n*100*j/iterations%1 == 0:
-                ETA = round(((time.time()-start_time)*(n-i)/i)) if i > 0 else 0
+            if int((i+n*j)/n/iterations*100) == (i+n*j)/n/iterations*100:
+                ETA = round(((time.time()-start_time)*(n-i+(n*(iterations-j)))/(i+n*j))) if i > 0 else 0
                 ETA = f"{ETA//3600}h {(ETA%3600)//60}min {ETA%60}sec" if ETA > 60 else f"{ETA//60}min {ETA%60}sec" if ETA > 60 else f"{ETA}sec"
                 if i > 0:
-                    print(f"{round(i/n*100, 3)}% done (ETA: {ETA})")
+                    print(f"{round((i+n*j)/n/iterations*100)}% done (ETA: {ETA})")
                 # print(str(i/n*100*(j+1)/iterations) + " % done")
     return (W, B, E)
 
@@ -142,7 +142,7 @@ def MNIST_stoch_training(train_input, train, result_input, result, reseau, nbr):
     (W, B) = random_w_b(train[0], reseau)
     print("Ending generating weight and bias")
     print("Starting training neural network")
-    (nW, nB, E) = stochastic_training(train[:nbr], result[:nbr], W, B, 0.01, reseau)
+    (nW, nB, E) = stochastic_training(train[:nbr], result[:nbr], W, B, 0.01, reseau, iterations=10)
     print("Ending training neural network")
     return (nW, nB, E)
 
@@ -162,8 +162,10 @@ def Global_MNIST(nbr):
         EE[result_input[i]].append(ei)
     # for i in range(len(E)) :
     #     EE[result_input[i]].append(E[i])
-    for i in range(10):
-        plt.plot(EE[i])
+    # for i in range(10):
+    #     plt.plot(EE[i])
+    # plt.show()
+    save_network(reseau, W, B, "test.data")
     return (W, B, EE)
 
 # (train_input, train, result_input, result) = MNIST_datas()
@@ -173,8 +175,9 @@ def Global_MNIST(nbr):
 def image(k=-1): #Affiche les iamges de MNIST pour peu qu'on ai lancé datas avant
     if k == -1:
         k = rd.randint(0, 60000-1)
-    res = np.array([[[int((1-train[k][j+28*i])*255) for ii in range(3)] for j in range(len(train_input[k]))] for i in range(len(train_input[k]))])
+    res = np.array([[[float((1-train[k][j+28*i])*255) for ii in range(3)] for j in range(len(train_input[k]))] for i in range(len(train_input[k]))])
     plt.imshow(res)
 
 # image()
+# plt.show()
                     

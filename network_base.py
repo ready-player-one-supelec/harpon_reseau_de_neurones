@@ -76,3 +76,19 @@ def random_w_b(inputs, network):
     # bias = [np.zeros(network[k]) for k in range(len(network))]
     bias = [1 / np.sqrt(len(inputs)) * np.random.randn(network[k]) for k in range(len(network))]
     return weights, bias
+
+def save_network(network, weights, bias, filename):
+    """Save network parameters in a file
+    Parameters:
+        network: List of p layers sizes
+        weights: List of p Arrays of layer[k]*layer[k+1] weights
+        bias: List of p Arrays of layer[k] bias
+        filename: String naming the saved file
+    """
+    with open(filename, "w") as file:
+        file.write(str(network))
+        file.write("\n")
+        file.write(str(weights))
+        file.write("\n")
+        file.write(str(bias))
+    return True
