@@ -7,6 +7,7 @@ Created on Tue Oct  9 17:10:09 2018
 
 import numpy as np
 import matplotlib.pyplot as plt
+import random as rd
 import idx2numpy as idx
 
 #%% Neural Network Base
@@ -53,12 +54,12 @@ def backprop(inputs,th_output,reseau,weights,bias,derivee = dsigmoid):
         grad_weight[col]=np.dot(list_out[col][None].T,grad_bias[col][None])
     return grad_weight,grad_bias,np.linalg.norm(th_output-list_out[-1])/2
 
-#%% Batch Training
-  
 def random_w_b(inputs,reseau):
     weights=[2*np.random.random((len(inputs),reseau[0]))-np.ones((len(inputs),reseau[0]))]+[2*np.random.random((reseau[k],reseau[k+1]))-np.ones((reseau[k],reseau[k+1])) for k in range(len(reseau)-1)]
     bias=[np.zeros(reseau[k]) for k in range(len(reseau))]
     return weights, bias   
+
+#%% Batch Training
 
 def batch_training(L_inputs,L_th_output,reseau,weights,bias,rate,iterations): 
     error = []
@@ -85,20 +86,21 @@ def minibatch_training(L_inputs,L_th_output,reseau,minibatch,weights=random_w_b(
 
 #%% Stochastic learning
 
-def stochastic_training(total_inputs,total_ouputs,ini_weight,ini_bias,vitesse,reseau):
+def stochastic_training(total_inputs,total_ouputs,ini_weight,ini_bias,vitesse,reseau,iterations = 1):
     n = len(total_inputs)
     W = ini_weight
     B = ini_bias
     E = []
-    for i in range(n):
-        I = total_inputs[i]
-        O = total_ouputs[i]
-        (gW,gB,ee) = backprop(I,O,reseau,W,B)
-        E.append(ee)
-        W = [W[i] - vitesse*gW[i] for i in range(len(W))]
-        B = [B[i] - vitesse*gB[i] for i in range(len(B))]
-        if i/n*100%1 == 0 :
-            print(str(i/n*100) + " % done")
+    for j in range(iterations):
+        for i in range(n):
+            I = total_inputs[i]
+            O = total_ouputs[i]
+            (gW,gB,ee) = backprop(I,O,reseau,W,B)
+            E.append(ee)
+            W = [W[i] - vitesse*gW[i] for i in range(len(W))]
+            B = [B[i] - vitesse*gB[i] for i in range(len(B))]
+            if i/n*100*j/iterations%1 == 0 :
+                print(str(i/n*100*(j+1)/iterations) + " % done")
     return (W,B,E)
 
 
@@ -159,65 +161,54 @@ def le_xor_stochastic(pas,N = 2000, reseau = [4,1]):
 
 #%% MNIST
 
-def MNIST(nbr):
+def MNIST_datas():
     with open(r"C:\Users\Loic\Documents\Projet Long HARPON\train-images.idx3-ubyte","rb") as train_images:
         with open(r"C:\Users\Loic\Documents\Projet Long HARPON\train-labels.idx1-ubyte","rb") as train_results:
             print("Strating preprocessing data")
             train_input = idx.convert_from_file(train_images)
-            train = np.array([np.zeros(784).reshape(784,1) for i in range(len(train_input))])
+            train = np.array([np.zeros(784) for i in range(len(train_input))])
             result_input = idx.convert_from_file(train_results)
-            result = np.array([[[int(i == result_input[j])] for i in range(10)] for j in range(len(train_input))])
+            result = np.array([[int(i == result_input[j]) for i in range(10)] for j in range(len(train_input))])
             for j in range(len(train)):
-                train[j] = train_input[j].reshape(28*28,1)/255
+                train[j] = train_input[j].reshape(1,784)/255
             #print("Half way preprocessing data")
             #train = traite_entrees(train)
             print("Ending preprocessing data")
-            print("Strating generating weight and bias")
-            (W,B) = initialise_weight_bias_mnist([784,16,16,10])
-            print("Ending generating weight and bias")
-            print("Starting training neural network")
-            (nW,nB,E)=Stochastic(train[:nbr],result[:nbr],W,B,.05)
-            print("Ending training neural network")
-            success = np.array([0,0])
-            for i in range(20000):
-                res = reseau(train[nbr+i],nW,nB)
-                if res[-1][result_input[nbr+i]] == np.max(res[-1]):
-                     success[1] +=  1
-                success[0] += 1
-            print("success rate:  " + str(success[1]/success[0]))
-            EE = [[] for i in range(10)]
-            for i in range(len(E)) :
-                EE[result_input[i]].append(E[i])
-            for i in range(10):
-                plt.plot(EE[i])
-            return (nW,nB,EE)
+            return (train_input,train,result_input,result)
 
+def MNIST_stoch_training(train_input,train,result_input,result,reseau,nbr):
+    print("Strating generating weight and bias")
+    (W,B) = random_w_b(train[0],reseau)
+    print("Ending generating weight and bias")
+    print("Starting training neural network")
+    (nW,nB,E)= stochastic_training(train[:nbr],result[:nbr],W,B,.1,reseau)
+    print("Ending training neural network")
+    return (nW,nB,E)
 
-#(W,B,E) = MNIST(30000)
-#(w,b,ee) = MNIST(5000)
+def Global_MNIST(nbr):
+    reseau = [16,16,10]
+    (train_input,train,result_input,result) = MNIST_datas()
+    (W,B,E) = MNIST_stoch_training(train_input,train,result_input,result,reseau,nbr)
+    success = np.array([0,0])
+    for i in range(20000):
+        res = front_prop(train[nbr+i],reseau,W,B)
+        if res[-1][result_input[nbr+i]] == np.max(res[-1]):
+            success[1] +=  1
+        success[0] += 1
+    print("success rate:  " + str(success[1]/success[0]))
+    EE = [[] for i in range(10)]
+    for i in range(len(E)) :
+        EE[result_input[i]].append(E[i])
+    for i in range(10):
+        plt.plot(EE[i])
+    return (W,B,EE)
 
-
-             
-def datas(): #Fonction de debugging inutile dans un processus normal
-     with open(r"C:\Users\Loic\Documents\Projet Long HARPON\train-images.idx3-ubyte","rb") as train_images:
-        with open(r"C:\Users\Loic\Documents\Projet Long HARPON\train-labels.idx1-ubyte","rb") as train_results:
-            print("Strating preprocessing data")
-            train_input = idx.convert_from_file(train_images)
-            train = np.array([np.zeros(784).reshape(784,1) for i in range(len(train_input))])
-            result_input = idx.convert_from_file(train_results)
-            result = np.array([[[int(i == result_input[j])] for i in range(10)] for j in range(len(train_input))])
-            for j in range(len(train)):
-                train[j] = train_input[j].reshape(28*28,1)/255
-            print("Half way preprocessing data")
-            train = traite_entrees(train)
-            print("Ending preprocessing data")
-            return (train_input,train,result,result_input) 
-
-#(train_input,train,result,result_input) = datas()
+#(train_input,train,result_input,result) = MNIST_datas()
+ 
 
 def image(k=-1): #Affiche les iamges de MNIST pour peu qu'on ai lancé datas avant 
    if k == -1 :
        k = rd.randint(0,60000-1)
-   res = np.array([[[int((1-train[k][j+28*i])*230) for ii in range(3)] for j in range(len(train_input[k]))] for i in range(len(train_input[k]))])
+   res = np.array([[[int((1-train[k][j+28*i])*255) for ii in range(3)] for j in range(len(train_input[k]))] for i in range(len(train_input[k]))])
    plt.imshow(res)      
                     
