@@ -164,7 +164,7 @@ def le_xor_stochastic(pas,N = 2000, reseau = [4,1]):
 def MNIST_datas():
     with open(r"C:\Users\Loic\Documents\Projet Long HARPON\train-images.idx3-ubyte","rb") as train_images:
         with open(r"C:\Users\Loic\Documents\Projet Long HARPON\train-labels.idx1-ubyte","rb") as train_results:
-            print("Strating preprocessing data")
+            print("Starting preprocessing data")
             train_input = idx.convert_from_file(train_images)
             train = np.array([np.zeros(784) for i in range(len(train_input))])
             result_input = idx.convert_from_file(train_results)
@@ -177,7 +177,7 @@ def MNIST_datas():
             return (train_input,train,result_input,result)
 
 def MNIST_stoch_training(train_input,train,result_input,result,reseau,nbr):
-    print("Strating generating weight and bias")
+    print("Starting generating weight and bias")
     (W,B) = random_w_b(train[0],reseau)
     print("Ending generating weight and bias")
     print("Starting training neural network")
