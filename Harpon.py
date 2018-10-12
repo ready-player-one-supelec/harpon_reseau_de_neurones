@@ -36,8 +36,8 @@ def batch_training(L_inputs, L_th_output, reseau, weights, bias, rate, iteration
     return weights, bias, error
 
 
-def minibatch_training(L_inputs, L_th_output, reseau, minibatch, weights=random_w_b(L_inputs[0],reseau)[0], bias=random_w_b(L_inputs[0],reseau)[1]):
-    pass 
+# def minibatch_training(L_inputs, L_th_output, reseau, minibatch, weights=random_w_b(L_inputs[0],reseau)[0], bias=random_w_b(L_inputs[0],reseau)[1]):
+#     pass 
 
 
 #%% Stochastic learning
@@ -101,7 +101,7 @@ def le_xor_batch(pas, reseau=[4, 1]):
     print("00: " + str(R00[-1]) + " ie. " + str(int(R00[-1][0] > .5)))
 
 
-def le_xor_stochastic(pas, N=2000, reseau=[4, 1]):
+def le_xor_stochastic(pas, N=20000, reseau=[4, 1]):
     (Wt, Bt) = random_w_b([0, 0], reseau)
     I = [np.array([int(i%4 == 0 or i%4 == 1), int(i%4 == 0 or i%4 == 3)]) for i in range(N)]
     I = traite_entrees(I)
@@ -142,7 +142,7 @@ def MNIST_stoch_training(train_input, train, result_input, result, reseau, nbr):
     (W, B) = random_w_b(train[0], reseau)
     print("Ending generating weight and bias")
     print("Starting training neural network")
-    (nW, nB, E) = stochastic_training(train[:nbr], result[:nbr], W, B, 0.1, reseau)
+    (nW, nB, E) = stochastic_training(train[:nbr], result[:nbr], W, B, 0.01, reseau)
     print("Ending training neural network")
     return (nW, nB, E)
 
@@ -166,7 +166,8 @@ def Global_MNIST(nbr):
         plt.plot(EE[i])
     return (W, B, EE)
 
-(train_input, train, result_input, result) = MNIST_datas()
+# (train_input, train, result_input, result) = MNIST_datas()
+# Global_MNIST(40000)
 
 
 def image(k=-1): #Affiche les iamges de MNIST pour peu qu'on ai lancé datas avant
@@ -175,5 +176,5 @@ def image(k=-1): #Affiche les iamges de MNIST pour peu qu'on ai lancé datas ava
     res = np.array([[[int((1-train[k][j+28*i])*255) for ii in range(3)] for j in range(len(train_input[k]))] for i in range(len(train_input[k]))])
     plt.imshow(res)
 
-image()
+# image()
                     
