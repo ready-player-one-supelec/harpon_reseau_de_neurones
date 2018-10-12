@@ -1,0 +1,8 @@
+# CONF
+.vscode
+
+# LOCAL
+Pipfile.lock
+
+# DATA
+*.idx*
