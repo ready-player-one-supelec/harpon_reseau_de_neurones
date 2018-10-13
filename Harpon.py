@@ -8,12 +8,13 @@ Created on Tue Oct  9 17:10:09 2018
 import time
 import random as rd
 
+import numpy
 import numpy as np
 import matplotlib.pyplot as plt
 import idx2numpy as idx
 
-from conf import train_images_path, train_labels_path
-from network_base import front_prop, backprop, random_w_b, save_network
+#from conf import train_images_path, train_labels_path
+#from network_base import front_prop, backprop, random_w_b, save_network
 
 #%% Batch Training
 
@@ -42,7 +43,7 @@ def batch_training(L_inputs, L_th_output, reseau, weights, bias, rate, iteration
 
 #%% Stochastic learning
 
-def stochastic_training(total_inputs, total_ouputs, ini_weight, ini_bias, vitesse, reseau, iterations=1):
+def stochastic_training(total_inputs, total_ouputs, ini_weight, ini_bias, vitesse, reseau, iterations=10):
     n = len(total_inputs)
     W = ini_weight
     B = ini_bias
@@ -56,11 +57,11 @@ def stochastic_training(total_inputs, total_ouputs, ini_weight, ini_bias, vitess
             E.append(ee)
             W = [W[i] - vitesse*gW[i] for i in range(len(W))]
             B = [B[i] - vitesse*gB[i] for i in range(len(B))]
-            if int((i+n*j)/n/iterations*100) == (i+n*j)/n/iterations*100:
-                ETA = round(((time.time()-start_time)*(n-i+(n*(iterations-j)))/(i+n*j))) if i > 0 else 0
-                ETA = f"{ETA//3600}h {(ETA%3600)//60}min {ETA%60}sec" if ETA > 60 else f"{ETA//60}min {ETA%60}sec" if ETA > 60 else f"{ETA}sec"
-                if i > 0:
-                    print(f"{round((i+n*j)/n/iterations*100)}% done (ETA: {ETA})")
+            # if int((i+n*j)/n/iterations*100) == (i+n*j)/n/iterations*100:
+            #     ETA = round(((time.time()-start_time)*(n-i+(n*(iterations-j)))/(i+n*j))) if i > 0 else 0
+            #     ETA = f"{ETA//3600}h {(ETA%3600)//60}min {ETA%60}sec" if ETA > 60 else f"{ETA//60}min {ETA%60}sec" if ETA > 60 else f"{ETA}sec"
+            #     if i > 0:
+            #         print(f"{round((i+n*j)/n/iterations*100)}% done (ETA: {ETA})")
                 # print(str(i/n*100*(j+1)/iterations) + " % done")
     return (W, B, E)
 
@@ -80,6 +81,43 @@ def traite_entrees(total_inputs): #It works maggle
         for j in range(m):
             res[i][j] = res[i][j]/norm
     return res
+
+def stochastic_training_v2(total_inputs, total_ouputs, ini_weight, ini_bias, vitesse, reseau, iterations=10, error_mesures=[]):
+    n = len(total_inputs)
+    W = ini_weight
+    B = ini_bias
+    E = []
+    error_rates=[]
+    counter=0
+    (train_input, train, result_input, result) = MNIST_datas()
+    (test_input, test, test_result_input, test_result) = MNIST_test_datas()
+    
+    #start_time = time.time()
+    for j in range(iterations):
+        for i in range(n):
+            I = total_inputs[i]
+            O = total_ouputs[i]
+            (gW, gB, ee) = backprop(I, O, reseau, W, B)
+            E.append(ee)
+            W = [W[i] - vitesse*gW[i] for i in range(len(W))]
+            B = [B[i] - vitesse*gB[i] for i in range(len(B))]
+            counter+=1
+            if counter in error_mesures:
+                success = np.array([0, 0])
+                for i in range(10000):
+                    res = front_prop(test[i], reseau, W, B)
+                    if res[-1][test_result_input[i]] == np.max(res[-1]):
+                        success[1] += 1
+                    success[0] += 1
+                print("success rate:  " + str(success[1]/success[0]))
+                error_rates+=[1-(success[1]/success[0])]
+            # if int((i+n*j)/n/iterations*100) == (i+n*j)/n/iterations*100:
+            #     ETA = round(((time.time()-start_time)*(n-i+(n*(iterations-j)))/(i+n*j))) if i > 0 else 0
+            #     ETA = f"{ETA//3600}h {(ETA%3600)//60}min {ETA%60}sec" if ETA > 60 else f"{ETA//60}min {ETA%60}sec" if ETA > 60 else f"{ETA}sec"
+            #     if i > 0:
+            #         print(f"{round((i+n*j)/n/iterations*100)}% done (ETA: {ETA})")
+                # print(str(i/n*100*(j+1)/iterations) + " % done")
+    return (W, B, E, error_rates)
 
 
 #%% Xor
@@ -136,19 +174,46 @@ def MNIST_datas():
             #train = traite_entrees(train)
             print("Ending preprocessing data")
             return (train_input, train, result_input, result)
+            
+def MNIST_test_datas():
+    with open(test_images_path, "rb") as test_images:
+        with open(test_labels_path, "rb") as test_results:
+            print("Starting preprocessing data")
+            test_input = idx.convert_from_file(test_images)
+            test = np.array([np.zeros(784) for i in range(len(test_input))])
+            test_result_input = idx.convert_from_file(test_results)
+            test_result = np.array([[int(i == test_result_input[j]) for i in range(10)] for j in range(len(test_input))])
+            for j in range(len(test)):
+                test[j] = test_input[j].reshape(1, 784)/255
+            #print("Half way preprocessing data")
+            #train = traite_entrees(train)
+            print("Ending preprocessing data")
+            return (test_input, test, test_result_input, test_result)
+            
 
 def MNIST_stoch_training(train_input, train, result_input, result, reseau, nbr):
     print("Starting generating weight and bias")
     (W, B) = random_w_b(train[0], reseau)
     print("Ending generating weight and bias")
     print("Starting training neural network")
-    (nW, nB, E) = stochastic_training(train[:nbr], result[:nbr], W, B, 0.01, reseau, iterations=10)
+    (nW, nB, E) = stochastic_training(train[:nbr], result[:nbr], W, B, 0.05, reseau, iterations=1)
     print("Ending training neural network")
     return (nW, nB, E)
+    
+def MNIST_stoch_training_v2(train_input, train, result_input, result, reseau, nbr, iterations, error_mesures=[]):
+    print("Starting generating weight and bias")
+    (W, B) = random_w_b(train[0], reseau)
+    print("Ending generating weight and bias")
+    print("Starting training neural network")
+    (nW, nB, E, R) = stochastic_training_v2(train[:nbr], result[:nbr], W, B, 0.05, reseau, iterations, error_mesures)
+    print("Ending training neural network")
+    return (nW, nB, E, R)
 
 def Global_MNIST(nbr):
     reseau = [16, 16, 10]
     (train_input, train, result_input, result) = MNIST_datas()
+    
+    
     (W, B, E) = MNIST_stoch_training(train_input, train, result_input, result, reseau, nbr)
     success = np.array([0, 0])
     for i in range(20000):
@@ -167,17 +232,71 @@ def Global_MNIST(nbr):
     # plt.show()
     save_network(reseau, W, B, "test.data")
     return (W, B, EE)
+    
+def Global_MNIST_v2(iterations=1,samples=60000,error_mesures=[]):
+    reseau = [16, 16, 10]
+    (train_input, train, result_input, result) = MNIST_datas()
+    
+    # combined = list(zip(train_input, train, result_input, result))
+    # rd.shuffle(combined)
+    # (train_input[:], train[:], result_input[:], result[:]) = zip(*combined) #mélange les exemples
+    
+    (test_input, test, test_result_input, test_result) = MNIST_test_datas()
+    (W, B, E, R) = MNIST_stoch_training_v2(train_input, train, result_input, result, reseau, samples, iterations, error_mesures)
+    success = np.array([0, 0])
+    for i in range(10000):
+        res = front_prop(test[i], reseau, W, B)
+        if res[-1][test_result_input[i]] == np.max(res[-1]):
+            success[1] += 1
+        success[0] += 1
+    print("success rate:  " + str(success[1]/success[0]))
+    # EE = [[] for i in range(10)]
+    # for i, ei in enumerate(E):
+    #     EE[result_input[i]].append(ei)
+    # for i in range(len(E)) :
+    #     EE[result_input[i]].append(E[i])
+    # for i in range(10):
+    #     plt.plot(EE[i])
+    # plt.show()
+    # save_network(reseau, W, B, "test.data")
+    return (W, B, R)
 
-# (train_input, train, result_input, result) = MNIST_datas()
+# (train_input, train, result_input, result) = MNIST_test_datas()
 # Global_MNIST(40000)
 
 
-def image(k=-1): #Affiche les iamges de MNIST pour peu qu'on ai lancé datas avant
+def image_datas(k=-1): #Affiche les images de MNIST pour peu qu'on ai lancé datas avant
     if k == -1:
         k = rd.randint(0, 60000-1)
     res = np.array([[[float((1-train[k][j+28*i])*255) for ii in range(3)] for j in range(len(train_input[k]))] for i in range(len(train_input[k]))])
     plt.imshow(res)
+    plt.show()
+    print(result_input[k])
+
+def image_test(k=-1):
+    if k == -1:
+        k = rd.randint(0, 10000-1)
+    res = np.array([[[float((1-train[k][j+28*i])*255) for ii in range(3)] for j in range(len(test_input[k]))] for i in range(len(train_input[k]))])
+    plt.imshow(res)
+    plt.show()
+    print(result_input[k])
 
 # image()
 # plt.show()
                     
+def courbe_erreur(iterations=1, runs=1, points_apprentissage=[]):
+    erreurs=[[]]*runs
+    for i in range(runs):
+        erreurs[i]+=(Global_MNIST_v2(iterations,60000, points_apprentissage))[-1]
+    return erreurs
+    
+def erreur_moyenne(iterations=1, runs=1, points_apprentissage=[]):
+    moyenne=[0]*(len(points_apprentissage)-1)
+    erreurs=courbe_erreur(iterations, runs, points_apprentissage)
+    for run in erreurs:
+        for i in range(len(run)):
+            moyenne[i]+=run[i]/runs
+    plt.plot(points_apprentissage[1:],moyenne)
+    plt.show()
+    return moyenne
+    

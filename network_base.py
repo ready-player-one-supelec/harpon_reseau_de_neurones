@@ -8,12 +8,14 @@ def dsigmoid(m): #Work in progress do not use
     return m * (np.ones(len(m)) - m)
 
 def tanh(x):
-    return np.tanh(x)
+    return 1.7159*np.tanh(2*x/3)
 
 def dtanh(m):
-    return np.ones(len(m))-m*m
+    a=1.7159
+    b=1/(a**2)
+    return a*(2/3)*(np.ones(len(m))-b*m*m)
 
-def front_prop(inputs, network, weights, bias, activation=sigmoid):
+def front_prop(inputs, network, weights, bias, activation=tanh):
     """Compute the output of the network
     Parameters:
         inputs: List of n Arrays input of size m
@@ -34,7 +36,7 @@ def front_prop(inputs, network, weights, bias, activation=sigmoid):
     return list_out
 
 
-def backprop(inputs, th_output, network, weights, bias, derivative=dsigmoid):
+def backprop(inputs, th_output, network, weights, bias, derivative=dtanh):
     """Compute the network bias and weight gradient
     Parameters:
         inputs: List of n Arrays input of size m
