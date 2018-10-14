@@ -7,5 +7,5 @@ conf.py
 __pycache__
 
 # DATA
-*.idx*
+*-idx*
 *.data
