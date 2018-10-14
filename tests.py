@@ -7,10 +7,10 @@ def test_network_dump():
     save_network(network, weights, bias, "test_dump.data")
     l_network, l_weights, l_bias = load_network("test_dump.data")
     assert np.array_equal(l_network, network)
-    for i in range(len(weights)):
-        assert np.allclose(l_weights[i], weights[i])
-    for i in range(len(bias)):
-        assert np.allclose(l_bias[i], bias[i])
+    for l_w, w in zip(l_weights, weights):
+        assert np.allclose(l_w, w)
+    for l_b, b in zip(l_bias, bias):
+        assert np.allclose(l_b, b)
 
 if __name__ == '__main__':
     test_network_dump()
