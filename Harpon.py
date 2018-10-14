@@ -80,9 +80,8 @@ def batch_training(L_inputs,L_th_output,reseau,weights,bias,rate,iterations):
     return weights,bias,error
 
 
-def minibatch_training(L_inputs,L_th_output,reseau,minibatch,weights=random_w_b(L_inputs[0],reseau)[0],bias=random_w_b(L_inputs[0],reseau)[1]):
-        return 
-
+#def minibatch_training(L_inputs,L_th_output,reseau,minibatch,weights=random_w_b(L_inputs[0],reseau)[0],bias=random_w_b(L_inputs[0],reseau)[1]):
+#       return 0
 
 #%% Stochastic learning
 
