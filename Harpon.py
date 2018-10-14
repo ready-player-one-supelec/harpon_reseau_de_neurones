@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import idx2numpy as idx
 
 from conf import train_images_path, train_labels_path
-from network_base import front_prop, backprop, random_w_b, save_network
+from network_base import front_prop, backprop, random_w_b, save_network, load_network
 
 #%% Batch Training
 
@@ -111,6 +111,8 @@ def le_xor_stochastic(pas, N=20000, reseau=[4, 1]):
     R10 = front_prop(I[1], reseau, nW, nB)
     R00 = front_prop(I[2], reseau, nW, nB)
     R01 = front_prop(I[3], reseau, nW, nB)
+    save_network(reseau, nW, nB, "XOR.data")
+    print(load_network('XOR.data'))
     plt.plot(E[::4])
     plt.plot(E[1::4])
     plt.plot(E[2::4])
