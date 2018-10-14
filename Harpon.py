@@ -17,7 +17,7 @@ from network_base import front_prop, backprop, random_w_b, save_network, load_ne
 
 #%% Batch Training
 
-def batch_training(L_inputs, L_th_outputs, reseau, weights, bias, rate, iterations): 
+def batch_training(L_inputs, L_th_outputs, reseau, weights, bias, rate, iterations):
     error = []
     for k in range(iterations):
         delta_weight = [weights[k]*0 for k in range(len(weights))]
@@ -35,27 +35,27 @@ def batch_training(L_inputs, L_th_outputs, reseau, weights, bias, rate, iteratio
             bias[col] += -delta_bias[col]
     return weights, bias, error
 
-def minibatch(L_inputs,L_th_outputs,L_inputs_test,L_th_outputs_test,reseau,weights,bias,rate,iterations,batchsize):
+def minibatch(L_inputs, L_th_outputs, L_inputs_test, L_th_outputs_test, reseau, weights, bias, rate, iterations, batchsize):
     #creation de plus petites listes (minibatchs)
-    batchs_L_inputs=[]
-    batchs_L_th_outputs=[]
-    error=[]
+    batchs_L_inputs = []
+    batchs_L_th_outputs = []
+    error = []
     for k in range(len(L_inputs)):
-        if k%batchsize==0:
+        if k%batchsize == 0:
             batchs_L_inputs.append([])
             batchs_L_th_outputs.append([])
         batchs_L_inputs[-1].append(L_inputs[k])
         batchs_L_th_outputs.append(L_th_outputs[k])
     for N in range(iterations):
         for minibatch in range(len(batchs_L_inputs)):
-                batch_training(batchs_L_inputs[minibatch],L_th_outputs[minibatch],reseau,weights,bias,rate,1)#change weights et bias dans la fonction
+            batch_training(batchs_L_inputs[minibatch], L_th_outputs[minibatch], reseau, weights, bias, rate, 1)#change weights et bias dans la fonction
         #calcul du coup (oui ca prend longtemps du coup :/ ca double le cout en temps presque faudrait modulariser cout() pour y remedier)
-        cost_tot=0
-        for data in range(len(L_inputs_test)):
-            gw,gb,cost = backprop(L_inputs_test[data],L_th_outputs_test[data],reseau,weights,bias)
+        cost_tot = 0
+        for input_test, th_output_test in zip(L_inputs_test, L_th_outputs_test):
+            gw, gb, cost = backprop(input_test, th_output_test, reseau, weights, bias)
             cost_tot += cost/len(L_inputs_test)
         error.append(cost_tot)
-    return weights,bias, error
+    return weights, bias, error
 
 
 #%% Stochastic learning
@@ -70,7 +70,7 @@ def stochastic_training(total_inputs, total_ouputs, ini_weight, ini_bias, vitess
         for i in range(n):
             I = total_inputs[i]
             O = total_ouputs[i]
-            (gW,gB,ee) = backprop(I,O,reseau,W,B,derivee,activation)
+            (gW, gB, ee) = backprop(I, O, reseau, W, B, derivee, activation)
             E.append(ee)
             W = [W[i] - vitesse*gW[i] for i in range(len(W))]
             B = [B[i] - vitesse*gB[i] for i in range(len(B))]
@@ -172,25 +172,25 @@ def MNIST_test_datas():
             print("Ending preprocessing data")
             return (test_input, test, test_result_input, test_result)
 
-def MNIST_stoch_training(train_input,train,result_input,result,reseau,iterations = 1,derivee = dsigmoid,activation = sigmoid):
+def MNIST_stoch_training(train_input, train, result_input, result, reseau, iterations=1, derivee=dsigmoid, activation=sigmoid):
     print("Starting generating weight and bias")
-    (W,B) = random_w_b(train[0],reseau)
+    (W, B) = random_w_b(train[0], reseau)
     print("Ending generating weight and bias")
     print("Starting training neural network")
-    (nW,nB,E)= stochastic_training(train,result,W,B,.1,reseau,iterations,derivee,activation)
+    (nW, nB, E) = stochastic_training(train, result, W, B, 0.1, reseau, iterations, derivee, activation)
     print("Ending training neural network")
     return (nW, nB, E)
 
-def Global_MNIST(iterations = 1,derivee = dsigmoid,activation = sigmoid):
-    reseau = [16,16,10]
-    (train_input,train,result_input,result) = MNIST_datas()
+def Global_MNIST(iterations=1, derivee=dsigmoid, activation=sigmoid):
+    reseau = [16, 16, 10]
+    (train_input, train, result_input, result) = MNIST_datas()
     (test_input, test, test_result_input, test_result) = MNIST_test_datas()
-    (W,B,E) = MNIST_stoch_training(train_input,train,result_input,result,reseau,iterations,derivee,activation)
-    success = np.array([0,0])
+    (W, B, E) = MNIST_stoch_training(train_input, train, result_input, result, reseau, iterations, derivee, activation)
+    success = np.array([0, 0])
     for i in range(len(test)):
-        res = front_prop(test[i],reseau,W,B)
+        res = front_prop(test[i], reseau, W, B)
         if res[-1][test_result_input[i]] == np.max(res[-1]):
-            success[1] +=  1
+            success[1] += 1
         success[0] += 1
     print("success rate:  " + str(success[1]/success[0]))
     EE = [[] for i in range(10)]
