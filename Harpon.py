@@ -11,25 +11,9 @@ import random as rd
 import numpy as np
 import matplotlib.pyplot as plt
 import idx2numpy as idx
-from config import train_images_path, train_labels_path,test_images_path,test_labels_path
 
-from conf import train_images_path, train_labels_path
-from network_base import front_prop, backprop, random_w_b, save_network, load_network
-
-    """Save network parameters in a file
-    Parameters:
-        network: List of p layers sizes
-        weights: List of p Arrays of layer[k]*layer[k+1] weights
-        bias: List of p Arrays of layer[k] bias
-        filename: String naming the saved file
-    """
-    with open(filename, "w") as file:
-        file.write(str(network))
-        file.write("\n")
-        file.write(str(weights))
-        file.write("\n")
-        file.write(str(bias))
-    return True
+from conf import train_images_path, train_labels_path, test_images_path, test_labels_path
+from network_base import front_prop, backprop, random_w_b, save_network, load_network, sigmoid, dsigmoid
 
 #%% Batch Training
 
