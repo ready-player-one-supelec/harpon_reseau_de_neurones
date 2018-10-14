@@ -9,6 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random as rd
 import idx2numpy as idx
+from config import train_images_path, train_labels_path,test_images_path,test_labels_path
 
 #%% Neural Network Base
 
@@ -19,10 +20,12 @@ def dsigmoid(m): #Work in progress do not use
     return m*(np.ones(len(m)) - m)
 
 def tanh(x):
-    return np.tanh(x)
+    return 1.7159*np.tanh(2*x/3)
 
 def dtanh(m):
-    return np.ones(len(m))-m*m
+    a = 1.7159
+    b = 1/(a**2)
+    return a*(2/3)*(np.ones(len(m))-b*m*m)
 
 def front_prop(inputs,reseau,weights,bias,activation = sigmoid):
     #weights is a list of arrays (lines:layers[k],colons:layers[k+1]), bias is a list of arrays 
@@ -39,10 +42,10 @@ def front_prop(inputs,reseau,weights,bias,activation = sigmoid):
     return list_out
 
 
-def backprop(inputs,th_output,reseau,weights,bias,derivee = dsigmoid):
+def backprop(inputs,th_output,reseau,weights,bias,derivee = dsigmoid,activation = sigmoid):
     #backpropagation:dc/daijk=dc/dbjk *Yik-1 et dc/bik=SUMj[dc/dbjk+1*aijk+1] *Yik+1(1-Yik+1)
     #matriciellement DAk=DBk.Yk-1 et DBk=Ak+1 . DBk+1*Yk+1 *(1-Yk+1)
-    list_out=front_prop(inputs,reseau,weights,bias)    
+    list_out=front_prop(inputs,reseau,weights,bias,activation)    
     grad_weight=[weights[k]*0 for k in range(len(weights))]
     grad_bias=[bias[k]*0 for k in range(len(bias))]
     #init
@@ -58,6 +61,22 @@ def random_w_b(inputs,reseau):
     weights=[2*np.random.random((len(inputs),reseau[0]))-np.ones((len(inputs),reseau[0]))]+[2*np.random.random((reseau[k],reseau[k+1]))-np.ones((reseau[k],reseau[k+1])) for k in range(len(reseau)-1)]
     bias=[np.zeros(reseau[k]) for k in range(len(reseau))]
     return weights, bias   
+
+def save_network(network, weights, bias, filename):
+    """Save network parameters in a file
+    Parameters:
+        network: List of p layers sizes
+        weights: List of p Arrays of layer[k]*layer[k+1] weights
+        bias: List of p Arrays of layer[k] bias
+        filename: String naming the saved file
+    """
+    with open(filename, "w") as file:
+        file.write(str(network))
+        file.write("\n")
+        file.write(str(weights))
+        file.write("\n")
+        file.write(str(bias))
+    return True
 
 #%% Batch Training
 
@@ -85,7 +104,7 @@ def batch_training(L_inputs,L_th_output,reseau,weights,bias,rate,iterations):
 
 #%% Stochastic learning
 
-def stochastic_training(total_inputs,total_ouputs,ini_weight,ini_bias,vitesse,reseau,iterations = 1):
+def stochastic_training(total_inputs,total_ouputs,ini_weight,ini_bias,vitesse,reseau,iterations = 1,derivee = dsigmoid,activation = sigmoid):
     n = len(total_inputs)
     W = ini_weight
     B = ini_bias
@@ -94,11 +113,11 @@ def stochastic_training(total_inputs,total_ouputs,ini_weight,ini_bias,vitesse,re
         for i in range(n):
             I = total_inputs[i]
             O = total_ouputs[i]
-            (gW,gB,ee) = backprop(I,O,reseau,W,B)
+            (gW,gB,ee) = backprop(I,O,reseau,W,B,derivee,activation)
             E.append(ee)
             W = [W[i] - vitesse*gW[i] for i in range(len(W))]
             B = [B[i] - vitesse*gB[i] for i in range(len(B))]
-            if i/n*100*j/iterations%1 == 0 :
+            if i/n*100*(j+1)/iterations%1 == 0 :
                 print(str(i/n*100*(j+1)/iterations) + " % done")
     return (W,B,E)
 
@@ -161,8 +180,8 @@ def le_xor_stochastic(pas,N = 2000, reseau = [4,1]):
 #%% MNIST
 
 def MNIST_datas():
-    with open(r"C:\Users\Loic\Documents\Projet Long HARPON\train-images.idx3-ubyte","rb") as train_images:
-        with open(r"C:\Users\Loic\Documents\Projet Long HARPON\train-labels.idx1-ubyte","rb") as train_results:
+    with open(train_images_path,"rb") as train_images:
+        with open(train_labels_path,"rb") as train_results:
             print("Starting preprocessing data")
             train_input = idx.convert_from_file(train_images)
             train = np.array([np.zeros(784) for i in range(len(train_input))])
@@ -175,23 +194,39 @@ def MNIST_datas():
             print("Ending preprocessing data")
             return (train_input,train,result_input,result)
 
-def MNIST_stoch_training(train_input,train,result_input,result,reseau,nbr):
+def MNIST_test_datas():
+    with open(test_images_path, "rb") as test_images:
+        with open(test_labels_path, "rb") as test_results:
+            print("Starting preprocessing data")
+            test_input = idx.convert_from_file(test_images)
+            test = np.array([np.zeros(784) for i in range(len(test_input))])
+            test_result_input = idx.convert_from_file(test_results)
+            test_result = np.array([[int(i == test_result_input[j]) for i in range(10)] for j in range(len(test_input))])
+            for j in range(len(test)):
+                test[j] = test_input[j].reshape(1, 784)/255
+            #print("Half way preprocessing data")
+            #train = traite_entrees(train)
+            print("Ending preprocessing data")
+            return (test_input, test, test_result_input, test_result)
+
+def MNIST_stoch_training(train_input,train,result_input,result,reseau,iterations = 1,derivee = dsigmoid,activation = sigmoid):
     print("Starting generating weight and bias")
     (W,B) = random_w_b(train[0],reseau)
     print("Ending generating weight and bias")
     print("Starting training neural network")
-    (nW,nB,E)= stochastic_training(train[:nbr],result[:nbr],W,B,.1,reseau)
+    (nW,nB,E)= stochastic_training(train,result,W,B,.1,reseau,iterations,derivee,activation)
     print("Ending training neural network")
     return (nW,nB,E)
 
-def Global_MNIST(nbr):
+def Global_MNIST(iterations = 1,derivee = dsigmoid,activation = sigmoid):
     reseau = [16,16,10]
     (train_input,train,result_input,result) = MNIST_datas()
-    (W,B,E) = MNIST_stoch_training(train_input,train,result_input,result,reseau,nbr)
+    (test_input, test, test_result_input, test_result) = MNIST_test_datas()
+    (W,B,E) = MNIST_stoch_training(train_input,train,result_input,result,reseau,iterations,derivee,activation)
     success = np.array([0,0])
-    for i in range(20000):
-        res = front_prop(train[nbr+i],reseau,W,B)
-        if res[-1][result_input[nbr+i]] == np.max(res[-1]):
+    for i in range(len(test)):
+        res = front_prop(test[i],reseau,W,B)
+        if res[-1][test_result_input[i]] == np.max(res[-1]):
             success[1] +=  1
         success[0] += 1
     print("success rate:  " + str(success[1]/success[0]))
