@@ -11,20 +11,36 @@ import random as rd
 import numpy as np
 import matplotlib.pyplot as plt
 import idx2numpy as idx
+from config import train_images_path, train_labels_path,test_images_path,test_labels_path
 
 from conf import train_images_path, train_labels_path
 from network_base import front_prop, backprop, random_w_b, save_network, load_network
 
+    """Save network parameters in a file
+    Parameters:
+        network: List of p layers sizes
+        weights: List of p Arrays of layer[k]*layer[k+1] weights
+        bias: List of p Arrays of layer[k] bias
+        filename: String naming the saved file
+    """
+    with open(filename, "w") as file:
+        file.write(str(network))
+        file.write("\n")
+        file.write(str(weights))
+        file.write("\n")
+        file.write(str(bias))
+    return True
+
 #%% Batch Training
 
-def batch_training(L_inputs, L_th_output, reseau, weights, bias, rate, iterations):
+def batch_training(L_inputs, L_th_outputs, reseau, weights, bias, rate, iterations): 
     error = []
     for k in range(iterations):
         delta_weight = [weights[k]*0 for k in range(len(weights))]
         delta_bias = [bias[k]*0 for k in range(len(bias))]
         cost_tot = 0
         for data in range(len(L_inputs)):
-            gw, gb, cost = backprop(L_inputs[data], L_th_output[data], reseau, weights, bias)
+            gw, gb, cost = backprop(L_inputs[data], L_th_outputs[data], reseau, weights, bias)
             for col in range(len(gw)):
                 delta_weight[col] += gw[col]*rate/len(L_inputs)
                 delta_bias[col] += gb[col]*rate/len(L_inputs)
@@ -35,14 +51,32 @@ def batch_training(L_inputs, L_th_output, reseau, weights, bias, rate, iteration
             bias[col] += -delta_bias[col]
     return weights, bias, error
 
-
-# def minibatch_training(L_inputs, L_th_output, reseau, minibatch, weights=random_w_b(L_inputs[0],reseau)[0], bias=random_w_b(L_inputs[0],reseau)[1]):
-#     pass 
+def minibatch(L_inputs,L_th_outputs,L_inputs_test,L_th_outputs_test,reseau,weights,bias,rate,iterations,batchsize):
+    #creation de plus petites listes (minibatchs)
+    batchs_L_inputs=[]
+    batchs_L_th_outputs=[]
+    error=[]
+    for k in range(len(L_inputs)):
+        if k%batchsize==0:
+            batchs_L_inputs.append([])
+            batchs_L_th_outputs.append([])
+        batchs_L_inputs[-1].append(L_inputs[k])
+        batchs_L_th_outputs.append(L_th_outputs[k])
+    for N in range(iterations):
+        for minibatch in range(len(batchs_L_inputs)):
+                batch_training(batchs_L_inputs[minibatch],L_th_outputs[minibatch],reseau,weights,bias,rate,1)#change weights et bias dans la fonction
+        #calcul du coup (oui ca prend longtemps du coup :/ ca double le cout en temps presque faudrait modulariser cout() pour y remedier)
+        cost_tot=0
+        for data in range(len(L_inputs_test)):
+            gw,gb,cost = backprop(L_inputs_test[data],L_th_outputs_test[data],reseau,weights,bias)
+            cost_tot += cost/len(L_inputs_test)
+        error.append(cost_tot)
+    return weights,bias, error
 
 
 #%% Stochastic learning
 
-def stochastic_training(total_inputs, total_ouputs, ini_weight, ini_bias, vitesse, reseau, iterations=1):
+def stochastic_training(total_inputs, total_ouputs, ini_weight, ini_bias, vitesse, reseau, iterations=1, derivee=dsigmoid, activation=sigmoid):
     n = len(total_inputs)
     W = ini_weight
     B = ini_bias
@@ -52,7 +86,7 @@ def stochastic_training(total_inputs, total_ouputs, ini_weight, ini_bias, vitess
         for i in range(n):
             I = total_inputs[i]
             O = total_ouputs[i]
-            (gW, gB, ee) = backprop(I, O, reseau, W, B)
+            (gW,gB,ee) = backprop(I,O,reseau,W,B,derivee,activation)
             E.append(ee)
             W = [W[i] - vitesse*gW[i] for i in range(len(W))]
             B = [B[i] - vitesse*gB[i] for i in range(len(B))]
@@ -139,24 +173,40 @@ def MNIST_datas():
             print("Ending preprocessing data")
             return (train_input, train, result_input, result)
 
-def MNIST_stoch_training(train_input, train, result_input, result, reseau, nbr):
+def MNIST_test_datas():
+    with open(test_images_path, "rb") as test_images:
+        with open(test_labels_path, "rb") as test_results:
+            print("Starting preprocessing data")
+            test_input = idx.convert_from_file(test_images)
+            test = np.array([np.zeros(784) for i in range(len(test_input))])
+            test_result_input = idx.convert_from_file(test_results)
+            test_result = np.array([[int(i == test_result_input[j]) for i in range(10)] for j in range(len(test_input))])
+            for j in range(len(test)):
+                test[j] = test_input[j].reshape(1, 784)/255
+            #print("Half way preprocessing data")
+            #train = traite_entrees(train)
+            print("Ending preprocessing data")
+            return (test_input, test, test_result_input, test_result)
+
+def MNIST_stoch_training(train_input,train,result_input,result,reseau,iterations = 1,derivee = dsigmoid,activation = sigmoid):
     print("Starting generating weight and bias")
-    (W, B) = random_w_b(train[0], reseau)
+    (W,B) = random_w_b(train[0],reseau)
     print("Ending generating weight and bias")
     print("Starting training neural network")
-    (nW, nB, E) = stochastic_training(train[:nbr], result[:nbr], W, B, 0.01, reseau, iterations=10)
+    (nW,nB,E)= stochastic_training(train,result,W,B,.1,reseau,iterations,derivee,activation)
     print("Ending training neural network")
     return (nW, nB, E)
 
-def Global_MNIST(nbr):
-    reseau = [16, 16, 10]
-    (train_input, train, result_input, result) = MNIST_datas()
-    (W, B, E) = MNIST_stoch_training(train_input, train, result_input, result, reseau, nbr)
-    success = np.array([0, 0])
-    for i in range(20000):
-        res = front_prop(train[nbr+i], reseau, W, B)
-        if res[-1][result_input[nbr+i]] == np.max(res[-1]):
-            success[1] += 1
+def Global_MNIST(iterations = 1,derivee = dsigmoid,activation = sigmoid):
+    reseau = [16,16,10]
+    (train_input,train,result_input,result) = MNIST_datas()
+    (test_input, test, test_result_input, test_result) = MNIST_test_datas()
+    (W,B,E) = MNIST_stoch_training(train_input,train,result_input,result,reseau,iterations,derivee,activation)
+    success = np.array([0,0])
+    for i in range(len(test)):
+        res = front_prop(test[i],reseau,W,B)
+        if res[-1][test_result_input[i]] == np.max(res[-1]):
+            success[1] +=  1
         success[0] += 1
     print("success rate:  " + str(success[1]/success[0]))
     EE = [[] for i in range(10)]
