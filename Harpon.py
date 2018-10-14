@@ -42,11 +42,7 @@ def front_prop(inputs,reseau,weights,bias,activation = sigmoid):
     return list_out
 
 
-<<<<<<< HEAD
-def backprop(inputs,th_output,reseau,weights,bias,derivee = dsigmoid,activation = sigmoid):
-=======
-def backprop(inputs,th_outputs,reseau,weights,bias,derivee = dsigmoid):
->>>>>>> batch-training
+def backprop(inputs,th_outputs,reseau,weights,bias,derivee = dsigmoid,activation = sigmoid):
     #backpropagation:dc/daijk=dc/dbjk *Yik-1 et dc/bik=SUMj[dc/dbjk+1*aijk+1] *Yik+1(1-Yik+1)
     #matriciellement DAk=DBk.Yk-1 et DBk=Ak+1 . DBk+1*Yk+1 *(1-Yk+1)
     list_out=front_prop(inputs,reseau,weights,bias,activation)    
@@ -66,8 +62,6 @@ def random_w_b(inputs,reseau):
     bias=[np.zeros(reseau[k]) for k in range(len(reseau))]
     return weights, bias   
 
-<<<<<<< HEAD
-def save_network(network, weights, bias, filename):
     """Save network parameters in a file
     Parameters:
         network: List of p layers sizes
@@ -85,10 +79,7 @@ def save_network(network, weights, bias, filename):
 
 #%% Batch Training
 
-def batch_training(L_inputs,L_th_output,reseau,weights,bias,rate,iterations): 
-=======
 def batch_training(L_inputs,L_th_outputs,reseau,weights,bias,rate,iterations): 
->>>>>>> batch-training
     error = []
     for k in range(iterations):
         delta_weight = [weights[k]*0 for k in range(len(weights))]
@@ -128,8 +119,6 @@ def minibatch(L_inputs,L_th_outputs,L_inputs_test,L_th_outputs_test,reseau,weigh
         error.append(cost_tot)
     return weights,bias, error
 
-#def minibatch_training(L_inputs,L_th_output,reseau,minibatch,weights=random_w_b(L_inputs[0],reseau)[0],bias=random_w_b(L_inputs[0],reseau)[1]):
-#       return 0
 
 #%% Stochastic learning
 
