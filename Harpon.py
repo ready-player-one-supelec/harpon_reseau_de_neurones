@@ -294,7 +294,7 @@ def erreur_moyenne(iterations=1, runs=1, points_apprentissage=[]):
     moyenne=[0]*(len(points_apprentissage)-1)
     erreurs=courbe_erreur(iterations, runs, points_apprentissage)
     for run in erreurs:
-        for i in range(len(run)):
+        for i in range(len(moyenne)):
             moyenne[i]+=run[i]/runs
     plt.plot(points_apprentissage[1:],moyenne)
     plt.show()
