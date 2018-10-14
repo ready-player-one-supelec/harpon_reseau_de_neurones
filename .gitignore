@@ -4,6 +4,8 @@
 # LOCAL
 Pipfile.lock
 conf.py
+__pycache__
 
 # DATA
 *.idx*
+*.data
