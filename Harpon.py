@@ -72,7 +72,7 @@ def batch_training(L_inputs,L_th_outputs,reseau,weights,bias,rate,iterations):
             bias[col] += -delta_bias[col]  
     return weights,bias,error
 
-def minibatch(L_inputs,L_th_outputs,reseau,weights,bias,rate,iterations,batchsize):
+def minibatch(L_inputs,L_th_outputs,L_inputs_test,L_th_outputs_test,reseau,weights,bias,rate,iterations,batchsize):
     #creation de plus petites listes (minibatchs)
     batchs_L_inputs=[]
     batchs_L_th_outputs=[]
@@ -88,9 +88,9 @@ def minibatch(L_inputs,L_th_outputs,reseau,weights,bias,rate,iterations,batchsiz
                 batch_training(batchs_L_inputs[minibatch],L_th_outputs[minibatch],reseau,weights,bias,rate,1)#change weights et bias dans la fonction
         #calcul du coup (oui ca prend longtemps du coup :/ ca double le cout en temps presque faudrait modulariser cout() pour y remedier)
         cost_tot=0
-        for data in range(len(L_inputs)):
-            gw,gb,cost = backprop(L_inputs[data],L_th_outputs[data],reseau,weights,bias)
-            cost_tot += cost/len(L_inputs)
+        for data in range(len(L_inputs_test)):
+            gw,gb,cost = backprop(L_inputs_test[data],L_th_outputs_test[data],reseau,weights,bias)
+            cost_tot += cost/len(L_inputs_test)
         error.append(cost_tot)
     return weights,bias, error
 
