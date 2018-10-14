@@ -287,7 +287,7 @@ def image_test(k=-1):
 def courbe_erreur(iterations=1, runs=1, points_apprentissage=[]):
     erreurs=[[]]*runs
     for i in range(runs):
-        erreurs[i]+=(Global_MNIST_v2(iterations,60000, points_apprentissage))[-1]
+        erreurs[i]=(Global_MNIST_v2(iterations,60000, points_apprentissage))[-1]
     return erreurs
     
 def erreur_moyenne(iterations=1, runs=1, points_apprentissage=[]):
