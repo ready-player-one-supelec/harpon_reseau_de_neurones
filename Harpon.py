@@ -42,26 +42,31 @@ def front_prop(inputs,reseau,weights,bias,activation = sigmoid):
     return list_out
 
 
+<<<<<<< HEAD
 def backprop(inputs,th_output,reseau,weights,bias,derivee = dsigmoid,activation = sigmoid):
+=======
+def backprop(inputs,th_outputs,reseau,weights,bias,derivee = dsigmoid):
+>>>>>>> batch-training
     #backpropagation:dc/daijk=dc/dbjk *Yik-1 et dc/bik=SUMj[dc/dbjk+1*aijk+1] *Yik+1(1-Yik+1)
     #matriciellement DAk=DBk.Yk-1 et DBk=Ak+1 . DBk+1*Yk+1 *(1-Yk+1)
     list_out=front_prop(inputs,reseau,weights,bias,activation)    
     grad_weight=[weights[k]*0 for k in range(len(weights))]
     grad_bias=[bias[k]*0 for k in range(len(bias))]
     #init
-    grad_bias[-1]= derivee(list_out[-1])*(list_out[-1]-np.array(th_output))
+    grad_bias[-1]= derivee(list_out[-1])*(list_out[-1]-np.array(th_outputs))
     grad_weight[-1]=np.dot(list_out[-2][None].T,grad_bias[-1][None])
     #recurrence
     for col in range(len(list_out)-3,-1,-1):
         grad_bias[col]=np.dot(weights[col+1],grad_bias[col+1])*derivee(list_out[col+1])
         grad_weight[col]=np.dot(list_out[col][None].T,grad_bias[col][None])
-    return grad_weight,grad_bias,np.linalg.norm(th_output-list_out[-1])/2
+    return grad_weight,grad_bias,np.linalg.norm(th_outputs-list_out[-1])/2
 
 def random_w_b(inputs,reseau):
     weights=[2*np.random.random((len(inputs),reseau[0]))-np.ones((len(inputs),reseau[0]))]+[2*np.random.random((reseau[k],reseau[k+1]))-np.ones((reseau[k],reseau[k+1])) for k in range(len(reseau)-1)]
     bias=[np.zeros(reseau[k]) for k in range(len(reseau))]
     return weights, bias   
 
+<<<<<<< HEAD
 def save_network(network, weights, bias, filename):
     """Save network parameters in a file
     Parameters:
@@ -81,13 +86,16 @@ def save_network(network, weights, bias, filename):
 #%% Batch Training
 
 def batch_training(L_inputs,L_th_output,reseau,weights,bias,rate,iterations): 
+=======
+def batch_training(L_inputs,L_th_outputs,reseau,weights,bias,rate,iterations): 
+>>>>>>> batch-training
     error = []
     for k in range(iterations):
         delta_weight = [weights[k]*0 for k in range(len(weights))]
         delta_bias = [bias[k]*0 for k in range(len(bias))]
         cost_tot = 0
         for data in range(len(L_inputs)):
-            gw,gb,cost = backprop(L_inputs[data],L_th_output[data],reseau,weights,bias)
+            gw,gb,cost = backprop(L_inputs[data],L_th_outputs[data],reseau,weights,bias)
             for col in range(len(gw)):
                 delta_weight[col] += gw[col]*rate/len(L_inputs)
                 delta_bias[col] += gb[col]*rate/len(L_inputs)
@@ -98,6 +106,27 @@ def batch_training(L_inputs,L_th_output,reseau,weights,bias,rate,iterations):
             bias[col] += -delta_bias[col]  
     return weights,bias,error
 
+def minibatch(L_inputs,L_th_outputs,L_inputs_test,L_th_outputs_test,reseau,weights,bias,rate,iterations,batchsize):
+    #creation de plus petites listes (minibatchs)
+    batchs_L_inputs=[]
+    batchs_L_th_outputs=[]
+    error=[]
+    for k in range(len(L_inputs)):
+        if k%batchsize==0:
+            batchs_L_inputs.append([])
+            batchs_L_th_outputs.append([])
+        batchs_L_inputs[-1].append(L_inputs[k])
+        batchs_L_th_outputs.append(L_th_outputs[k])
+    for N in range(iterations):
+        for minibatch in range(len(batchs_L_inputs)):
+                batch_training(batchs_L_inputs[minibatch],L_th_outputs[minibatch],reseau,weights,bias,rate,1)#change weights et bias dans la fonction
+        #calcul du coup (oui ca prend longtemps du coup :/ ca double le cout en temps presque faudrait modulariser cout() pour y remedier)
+        cost_tot=0
+        for data in range(len(L_inputs_test)):
+            gw,gb,cost = backprop(L_inputs_test[data],L_th_outputs_test[data],reseau,weights,bias)
+            cost_tot += cost/len(L_inputs_test)
+        error.append(cost_tot)
+    return weights,bias, error
 
 #def minibatch_training(L_inputs,L_th_output,reseau,minibatch,weights=random_w_b(L_inputs[0],reseau)[0],bias=random_w_b(L_inputs[0],reseau)[1]):
 #       return 0
