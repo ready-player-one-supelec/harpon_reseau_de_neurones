@@ -62,21 +62,6 @@ def random_w_b(inputs,reseau):
     bias=[np.zeros(reseau[k]) for k in range(len(reseau))]
     return weights, bias   
 
-    """Save network parameters in a file
-    Parameters:
-        network: List of p layers sizes
-        weights: List of p Arrays of layer[k]*layer[k+1] weights
-        bias: List of p Arrays of layer[k] bias
-        filename: String naming the saved file
-    """
-    with open(filename, "w") as file:
-        file.write(str(network))
-        file.write("\n")
-        file.write(str(weights))
-        file.write("\n")
-        file.write(str(bias))
-    return True
-
 #%% Batch Training
 
 def batch_training(L_inputs,L_th_outputs,reseau,weights,bias,rate,iterations): 
@@ -107,16 +92,17 @@ def minibatch(L_inputs,L_th_outputs,L_inputs_test,L_th_outputs_test,reseau,weigh
             batchs_L_inputs.append([])
             batchs_L_th_outputs.append([])
         batchs_L_inputs[-1].append(L_inputs[k])
-        batchs_L_th_outputs.append(L_th_outputs[k])
+        batchs_L_th_outputs[-1].append(L_th_outputs[k])
+    print (batchs_L_inputs,batchs_L_th_outputs)
     for N in range(iterations):
         for minibatch in range(len(batchs_L_inputs)):
-                batch_training(batchs_L_inputs[minibatch],L_th_outputs[minibatch],reseau,weights,bias,rate,1)#change weights et bias dans la fonction
+            batch_training(batchs_L_inputs[minibatch],L_th_outputs[minibatch],reseau,weights,bias,rate,1)#change weights et bias dans la fonction
         #calcul du coup (oui ca prend longtemps du coup :/ ca double le cout en temps presque faudrait modulariser cout() pour y remedier)
-        cost_tot=0
-        for data in range(len(L_inputs_test)):
-            gw,gb,cost = backprop(L_inputs_test[data],L_th_outputs_test[data],reseau,weights,bias)
-            cost_tot += cost/len(L_inputs_test)
-        error.append(cost_tot)
+            cost_tot=0
+            for data in range(len(L_inputs_test)):
+                gw,gb,cost = backprop(L_inputs_test[data],L_th_outputs_test[data],reseau,weights,bias)
+                cost_tot += cost/len(L_inputs_test)
+            error.append(cost_tot)
     return weights,bias, error
 
 
@@ -159,7 +145,7 @@ def traite_entrees(total_inputs): #It works maggle
 
 #%% Xor
    
-def le_xor_batch(pas,reseau = [4,1]):
+def le_xor_batch(pas,reseau = [4,1]):#pas=0.5
     (Wt,Bt) = random_w_b([0,0],reseau)   
     N =10000
     I = [ np.array([int(i%4 == 0 or i%4 == 1),int(i%4 == 0 or i%4 == 3)]) for i in range(4)]
@@ -174,10 +160,25 @@ def le_xor_batch(pas,reseau = [4,1]):
     print("10: " + str(R10[-1]) + " ie. " + str(int(R10[-1][0] > .5)))
     print("01: " + str(R01[-1]) + " ie. " + str(int(R01[-1][0] > .5)))
     print("00: " + str(R00[-1]) + " ie. " + str(int(R00[-1][0] > .5)))
-
-
-def le_xor_stochastic(pas,N = 2000, reseau = [4,1]):
+    
+def le_xor_mini_batch(pas,reseau = [4,1]):
     (Wt,Bt) = random_w_b([0,0],reseau)   
+    N =10000
+    I = [ np.array([int(i%4 == 0 or i%4 == 1),int(i%4 == 0 or i%4 == 3)]) for i in range(4)]
+    O = [ np.array([int( (I[i][0] > 0 and I[i][1] <= 0) or (I[i][0] <= 0 and I[i][1] > 0) )]) for i in range(4)]
+    (nW,nB,E)= minibatch(I,O,I,O,reseau,Wt,Bt,pas,N,2)
+    R11 = front_prop(I[0],reseau,nW,nB)
+    R10 = front_prop(I[1],reseau,nW,nB)
+    R00 = front_prop(I[2],reseau,nW,nB)
+    R01 = front_prop(I[3],reseau,nW,nB)
+    plt.plot(E)
+    print("11: " + str(R11[-1]) + " ie. " + str(int(R11[-1][0] > .5)))
+    print("10: " + str(R10[-1]) + " ie. " + str(int(R10[-1][0] > .5)))
+    print("01: " + str(R01[-1]) + " ie. " + str(int(R01[-1][0] > .5)))
+    print("00: " + str(R00[-1]) + " ie. " + str(int(R00[-1][0] > .5)))
+
+def le_xor_stochastic(pas,N = 20000, reseau = [4,1]):
+    (Wt,Bt) = random_w_b([0,0],reseau)
     I = [ np.array([int(i%4 == 0 or i%4 == 1),int(i%4 == 0 or i%4 == 3)]) for i in range(N)]
     I = traite_entrees(I)
     O = [ np.array([int( (I[i][0] > 0 and I[i][1] < 0) or (I[i][0] < 0 and I[i][1] > 0) )]) for i in range(N)]
