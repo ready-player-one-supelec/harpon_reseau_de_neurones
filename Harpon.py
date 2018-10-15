@@ -258,7 +258,10 @@ def Global_MNIST(iterations = 1,derivee = dsigmoid,activation = sigmoid):
 #        plt.plot(EE[i])
     return (W,B,E,errors)
 
-#(train_input,train,result_input,result) = MNIST_test_datas()
+try:
+   train
+except NameError:
+    (train_input,train,result_input,result) = MNIST_test_datas()
  
 
 
