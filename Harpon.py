@@ -62,7 +62,7 @@ def random_w_b(inputs,reseau):
     bias=[np.zeros(reseau[k]) for k in range(len(reseau))]
     return weights, bias   
 
-#%% Batch Training
+#%% Batch learning
 
 def batch_training(L_inputs,L_th_outputs,reseau,weights,bias,rate,iterations): 
     error = []
@@ -93,10 +93,9 @@ def minibatch(L_inputs,L_th_outputs,L_inputs_test,L_th_outputs_test,reseau,weigh
             batchs_L_th_outputs.append([])
         batchs_L_inputs[-1].append(L_inputs[k])
         batchs_L_th_outputs[-1].append(L_th_outputs[k])
-    print (batchs_L_inputs,batchs_L_th_outputs)
     for N in range(iterations):
         for minibatch in range(len(batchs_L_inputs)):
-            batch_training(batchs_L_inputs[minibatch],L_th_outputs[minibatch],reseau,weights,bias,rate,1)#change weights et bias dans la fonction
+            batch_training(batchs_L_inputs[minibatch],batchs_L_th_outputs[minibatch],reseau,weights,bias,rate,1)#change weights et bias dans la fonction
         #calcul du coup (oui ca prend longtemps du coup :/ ca double le cout en temps presque faudrait modulariser cout() pour y remedier)
             cost_tot=0
             for data in range(len(L_inputs_test)):
@@ -145,9 +144,9 @@ def traite_entrees(total_inputs): #It works maggle
 
 #%% Xor
    
-def le_xor_batch(pas,reseau = [4,1]):#pas=0.5
+def le_xor_batch(pas,reseau = [4,1]):#pas=0.2 marche bien
     (Wt,Bt) = random_w_b([0,0],reseau)   
-    N =10000
+    N =20000
     I = [ np.array([int(i%4 == 0 or i%4 == 1),int(i%4 == 0 or i%4 == 3)]) for i in range(4)]
     O = [ np.array([int( (I[i][0] > 0 and I[i][1] <= 0) or (I[i][0] <= 0 and I[i][1] > 0) )]) for i in range(4)]
     (nW,nB,E)= batch_training(I,O,reseau,Wt,Bt,pas,N)
@@ -171,13 +170,12 @@ def le_xor_mini_batch(pas,reseau = [4,1]):
     R10 = front_prop(I[1],reseau,nW,nB)
     R00 = front_prop(I[2],reseau,nW,nB)
     R01 = front_prop(I[3],reseau,nW,nB)
-    plt.plot(E)
     print("11: " + str(R11[-1]) + " ie. " + str(int(R11[-1][0] > .5)))
     print("10: " + str(R10[-1]) + " ie. " + str(int(R10[-1][0] > .5)))
     print("01: " + str(R01[-1]) + " ie. " + str(int(R01[-1][0] > .5)))
     print("00: " + str(R00[-1]) + " ie. " + str(int(R00[-1][0] > .5)))
 
-def le_xor_stochastic(pas,N = 20000, reseau = [4,1]):
+def le_xor_stochastic(pas,N = 20000, reseau = [4,1]):#☺marche bien pour 0.2
     (Wt,Bt) = random_w_b([0,0],reseau)
     I = [ np.array([int(i%4 == 0 or i%4 == 1),int(i%4 == 0 or i%4 == 3)]) for i in range(N)]
     I = traite_entrees(I)
@@ -187,6 +185,7 @@ def le_xor_stochastic(pas,N = 20000, reseau = [4,1]):
     R10 = front_prop(I[1],reseau,nW,nB)
     R00 = front_prop(I[2],reseau,nW,nB)
     R01 = front_prop(I[3],reseau,nW,nB)
+    plt.plot(E)
     plt.plot(E[::4])
     plt.plot(E[1::4])
     plt.plot(E[2::4])
