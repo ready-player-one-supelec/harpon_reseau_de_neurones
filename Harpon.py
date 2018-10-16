@@ -62,6 +62,14 @@ def random_w_b(inputs,reseau):
     bias=[np.zeros(reseau[k]) for k in range(len(reseau))]
     return weights, bias   
 
+def cost_function(L_inputs,L_th_outputs,reseau,weights,bias,activation=sigmoid):
+    cost=0
+    for k in range(len(L_inputs)):
+        output=front_prop(L_inputs[k],reseau,weights,bias,activation)[-1]
+        cost+=np.linalg.norm(L_th_outputs[k]-output)/2
+    return cost/len(L_inputs)
+
+
 #%% Batch learning
 
 def batch_training(L_inputs,L_th_outputs,reseau,weights,bias,rate,iterations,activation = sigmoid,derivee = dsigmoid): 
@@ -108,6 +116,7 @@ def minibatch(L_inputs,L_th_outputs,L_inputs_test,L_th_outputs_test,reseau,weigh
 #%% Stochastic learning
 
 def stochastic_training(total_inputs,total_ouputs,ini_weight,ini_bias,vitesse,reseau,iterations = 1,activation = sigmoid,derivee = dsigmoid):
+    #iterations=iterations de l'ensemble du training set
     n = len(total_inputs)
     W = ini_weight
     B = ini_bias
@@ -123,6 +132,7 @@ def stochastic_training(total_inputs,total_ouputs,ini_weight,ini_bias,vitesse,re
             #if i/n*100*(j+1)/iterations%1 == 0 :
                 #print(str(i/n*100*(j+1)/iterations) + " % done")
     return (W,B,E)
+
 
 
 def traite_entrees(total_inputs): #It works maggle
