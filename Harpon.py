@@ -42,7 +42,7 @@ def front_prop(inputs,reseau,weights,bias,activation = sigmoid):
     return list_out
 
 
-def backprop(inputs,th_outputs,reseau,weights,bias,derivee = dsigmoid,activation = sigmoid):
+def backprop(inputs,th_outputs,reseau,weights,bias,activation = sigmoid,derivee = dsigmoid):
     #backpropagation:dc/daijk=dc/dbjk *Yik-1 et dc/bik=SUMj[dc/dbjk+1*aijk+1] *Yik+1(1-Yik+1)
     #matriciellement DAk=DBk.Yk-1 et DBk=Ak+1 . DBk+1*Yk+1 *(1-Yk+1)
     list_out=front_prop(inputs,reseau,weights,bias,activation)    
@@ -64,14 +64,14 @@ def random_w_b(inputs,reseau):
 
 #%% Batch learning
 
-def batch_training(L_inputs,L_th_outputs,reseau,weights,bias,rate,iterations): 
+def batch_training(L_inputs,L_th_outputs,reseau,weights,bias,rate,iterations,activation = sigmoid,derivee = dsigmoid): 
     error = []
     for k in range(iterations):
         delta_weight = [weights[k]*0 for k in range(len(weights))]
         delta_bias = [bias[k]*0 for k in range(len(bias))]
         cost_tot = 0
         for data in range(len(L_inputs)):
-            gw,gb,cost = backprop(L_inputs[data],L_th_outputs[data],reseau,weights,bias)
+            gw,gb,cost = backprop(L_inputs[data],L_th_outputs[data],reseau,weights,bias,activation,derivee)
             for col in range(len(gw)):
                 delta_weight[col] += gw[col]*rate/len(L_inputs)
                 delta_bias[col] += gb[col]*rate/len(L_inputs)
@@ -82,7 +82,7 @@ def batch_training(L_inputs,L_th_outputs,reseau,weights,bias,rate,iterations):
             bias[col] += -delta_bias[col]  
     return weights,bias,error
 
-def minibatch(L_inputs,L_th_outputs,L_inputs_test,L_th_outputs_test,reseau,weights,bias,rate,iterations,batchsize):
+def minibatch(L_inputs,L_th_outputs,L_inputs_test,L_th_outputs_test,reseau,weights,bias,rate,iterations,batchsize,activation = sigmoid,derivee = dsigmoid):
     #creation de plus petites listes (minibatchs)
     batchs_L_inputs=[]
     batchs_L_th_outputs=[]
@@ -95,11 +95,11 @@ def minibatch(L_inputs,L_th_outputs,L_inputs_test,L_th_outputs_test,reseau,weigh
         batchs_L_th_outputs[-1].append(L_th_outputs[k])
     for N in range(iterations):
         for minibatch in range(len(batchs_L_inputs)):
-            batch_training(batchs_L_inputs[minibatch],batchs_L_th_outputs[minibatch],reseau,weights,bias,rate,1)#change weights et bias dans la fonction
+            batch_training(batchs_L_inputs[minibatch],batchs_L_th_outputs[minibatch],reseau,weights,bias,rate,1,activation,derivee)#change weights et bias dans la fonction
         #calcul du coup (oui ca prend longtemps du coup :/ ca double le cout en temps presque faudrait modulariser cout() pour y remedier)
             cost_tot=0
             for data in range(len(L_inputs_test)):
-                gw,gb,cost = backprop(L_inputs_test[data],L_th_outputs_test[data],reseau,weights,bias)
+                gw,gb,cost = backprop(L_inputs_test[data],L_th_outputs_test[data],reseau,weights,bias,activation,derivee)
                 cost_tot += cost/len(L_inputs_test)
             error.append(cost_tot)
     return weights,bias, error
@@ -107,7 +107,7 @@ def minibatch(L_inputs,L_th_outputs,L_inputs_test,L_th_outputs_test,reseau,weigh
 
 #%% Stochastic learning
 
-def stochastic_training(total_inputs,total_ouputs,ini_weight,ini_bias,vitesse,reseau,iterations = 1,derivee = dsigmoid,activation = sigmoid):
+def stochastic_training(total_inputs,total_ouputs,ini_weight,ini_bias,vitesse,reseau,iterations = 1,activation = sigmoid,derivee = dsigmoid):
     n = len(total_inputs)
     W = ini_weight
     B = ini_bias
@@ -116,7 +116,7 @@ def stochastic_training(total_inputs,total_ouputs,ini_weight,ini_bias,vitesse,re
         for i in range(n):
             I = total_inputs[i]
             O = total_ouputs[i]
-            (gW,gB,ee) = backprop(I,O,reseau,W,B,derivee,activation)
+            (gW,gB,ee) = backprop(I,O,reseau,W,B,activation,derivee)
             E.append(ee)
             W = [W[i] - vitesse*gW[i] for i in range(len(W))]
             B = [B[i] - vitesse*gB[i] for i in range(len(B))]
@@ -144,47 +144,48 @@ def traite_entrees(total_inputs): #It works maggle
 
 #%% Xor
    
-def le_xor_batch(pas,reseau = [4,1]):#pas=0.2 marche bien
+def le_xor_batch(pas,reseau = [4,1],activation = sigmoid,derivee = dsigmoid):#pas=0.2 marche bien
     (Wt,Bt) = random_w_b([0,0],reseau)   
     N =20000
     I = [ np.array([int(i%4 == 0 or i%4 == 1),int(i%4 == 0 or i%4 == 3)]) for i in range(4)]
     O = [ np.array([int( (I[i][0] > 0 and I[i][1] <= 0) or (I[i][0] <= 0 and I[i][1] > 0) )]) for i in range(4)]
-    (nW,nB,E)= batch_training(I,O,reseau,Wt,Bt,pas,N)
-    R11 = front_prop(I[0],reseau,nW,nB)
-    R10 = front_prop(I[1],reseau,nW,nB)
-    R00 = front_prop(I[2],reseau,nW,nB)
-    R01 = front_prop(I[3],reseau,nW,nB)
-    plt.plot(E)
+    (nW,nB,E)= batch_training(I,O,reseau,Wt,Bt,pas,N,activation,derivee)
+    R11 = front_prop(I[0],reseau,nW,nB,activation)
+    R10 = front_prop(I[1],reseau,nW,nB,activation)
+    R00 = front_prop(I[2],reseau,nW,nB,activation)
+    R01 = front_prop(I[3],reseau,nW,nB,activation)
+    #plt.plot(E)
     print("11: " + str(R11[-1]) + " ie. " + str(int(R11[-1][0] > .5)))
     print("10: " + str(R10[-1]) + " ie. " + str(int(R10[-1][0] > .5)))
     print("01: " + str(R01[-1]) + " ie. " + str(int(R01[-1][0] > .5)))
     print("00: " + str(R00[-1]) + " ie. " + str(int(R00[-1][0] > .5)))
-    
-def le_xor_mini_batch(pas,reseau = [4,1]):
+    return E
+
+def le_xor_mini_batch(pas,reseau = [4,1],activation = sigmoid,derivee = dsigmoid):
     (Wt,Bt) = random_w_b([0,0],reseau)   
     N =10000
     I = [ np.array([int(i%4 == 0 or i%4 == 1),int(i%4 == 0 or i%4 == 3)]) for i in range(4)]
     O = [ np.array([int( (I[i][0] > 0 and I[i][1] <= 0) or (I[i][0] <= 0 and I[i][1] > 0) )]) for i in range(4)]
-    (nW,nB,E)= minibatch(I,O,I,O,reseau,Wt,Bt,pas,N,2)
-    R11 = front_prop(I[0],reseau,nW,nB)
-    R10 = front_prop(I[1],reseau,nW,nB)
-    R00 = front_prop(I[2],reseau,nW,nB)
-    R01 = front_prop(I[3],reseau,nW,nB)
+    (nW,nB,E)= minibatch(I,O,I,O,reseau,Wt,Bt,pas,N,2,activation,derivee)
+    R11 = front_prop(I[0],reseau,nW,nB,activation)
+    R10 = front_prop(I[1],reseau,nW,nB,activation)
+    R00 = front_prop(I[2],reseau,nW,nB,activation)
+    R01 = front_prop(I[3],reseau,nW,nB,activation)
     print("11: " + str(R11[-1]) + " ie. " + str(int(R11[-1][0] > .5)))
     print("10: " + str(R10[-1]) + " ie. " + str(int(R10[-1][0] > .5)))
     print("01: " + str(R01[-1]) + " ie. " + str(int(R01[-1][0] > .5)))
     print("00: " + str(R00[-1]) + " ie. " + str(int(R00[-1][0] > .5)))
 
-def le_xor_stochastic(pas,N = 20000, reseau = [4,1]):#☺marche bien pour 0.2
+def le_xor_stochastic(pas,N = 20000, reseau = [4,1],activation = sigmoid,derivee = dsigmoid):#☺marche bien pour 0.2
     (Wt,Bt) = random_w_b([0,0],reseau)
     I = [ np.array([int(i%4 == 0 or i%4 == 1),int(i%4 == 0 or i%4 == 3)]) for i in range(N)]
     I = traite_entrees(I)
     O = [ np.array([int( (I[i][0] > 0 and I[i][1] < 0) or (I[i][0] < 0 and I[i][1] > 0) )]) for i in range(N)]
-    (nW,nB,E)= stochastic_training(I,O,Wt,Bt,pas,reseau)
-    R11 = front_prop(I[0],reseau,nW,nB)
-    R10 = front_prop(I[1],reseau,nW,nB)
-    R00 = front_prop(I[2],reseau,nW,nB)
-    R01 = front_prop(I[3],reseau,nW,nB)
+    (nW,nB,E)= stochastic_training(I,O,Wt,Bt,pas,reseau,activation,derivee)
+    R11 = front_prop(I[0],reseau,nW,nB,activation)
+    R10 = front_prop(I[1],reseau,nW,nB,activation)
+    R00 = front_prop(I[2],reseau,nW,nB,activation)
+    R01 = front_prop(I[3],reseau,nW,nB,activation)
     plt.plot(E)
     plt.plot(E[::4])
     plt.plot(E[1::4])
@@ -195,6 +196,7 @@ def le_xor_stochastic(pas,N = 20000, reseau = [4,1]):#☺marche bien pour 0.2
     print("01: " + str(R01[-1]) + " ie. " + str(int(R01[-1][0] > .5)))
     print("00: " + str(R00[-1]) + " ie. " + str(int(R00[-1][0] > .5)))
 
+    
 #%% MNIST
 
 def MNIST_datas():
@@ -263,4 +265,5 @@ def image(k=-1): #Affiche les iamges de MNIST pour peu qu'on ai lancé datas ava
        k = rd.randint(0,60000-1)
    res = np.array([[[int((1-train[k][j+28*i])*255) for ii in range(3)] for j in range(len(train_input[k]))] for i in range(len(train_input[k]))])
    plt.imshow(res)      
-                    
+  
+                  
