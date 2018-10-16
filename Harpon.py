@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random as rd
 import idx2numpy as idx
-from config import train_images_path, train_labels_path,test_images_path,test_labels_path
+from conf import train_images_path, train_labels_path,test_images_path,test_labels_path
 
 #%% Neural Network Base
 
@@ -240,6 +240,7 @@ def MNIST_stoch_training(train_input,train,result_input,result,reseau,iterations
 
 def Global_MNIST(iterations = 1,derivee = dsigmoid,activation = sigmoid):
     reseau = [16,16,10]
+    errors = []
     (train_input,train,result_input,result) = MNIST_datas()
     (test_input, test, test_result_input, test_result) = MNIST_test_datas()
     (W,B,E) = MNIST_stoch_training(train_input,train,result_input,result,reseau,iterations,derivee,activation)
@@ -248,18 +249,24 @@ def Global_MNIST(iterations = 1,derivee = dsigmoid,activation = sigmoid):
         res = front_prop(test[i],reseau,W,B)
         if res[-1][test_result_input[i]] == np.max(res[-1]):
             success[1] +=  1
+        else:
+            errors.append((i,list(res[-1]).index(np.max(res[-1]))))
         success[0] += 1
     print("success rate:  " + str(success[1]/success[0]))
-    EE = [[] for i in range(10)]
-    for i in range(len(E)) :
-        EE[result_input[i]].append(E[i])
-    for i in range(10):
-        plt.plot(EE[i])
-    return (W,B,EE)
+#    EE = [[] for i in range(10)]
+#    for i in range(len(E)) :
+#        EE[result_input[i]].append(E[i])
+#    for i in range(10):
+#        plt.plot(EE[i])
+    return (W,B,E,errors)
 
-#(train_input,train,result_input,result) = MNIST_datas()
+try:
+   train
+except NameError:
+    (train_input,train,result_input,result) = MNIST_test_datas()
  
 
+<<<<<<< HEAD
 def image(k=-1): #Affiche les iamges de MNIST pour peu qu'on ai lancé datas avant 
    if k == -1 :
        k = rd.randint(0,60000-1)
@@ -267,3 +274,17 @@ def image(k=-1): #Affiche les iamges de MNIST pour peu qu'on ai lancé datas ava
    plt.imshow(res)      
   
                   
+=======
+
+def image(k=-1,result =-1): #Affiche les iamges de MNIST pour peu qu'on ai lancé datas avant 
+    if k == -1 :
+        k = rd.randint(0,60000-1)
+    if result == -1:
+        result = result_input[k]
+    res = np.array([[[int((1-train[k][j+28*i])*255) for ii in range(3)] for j in range(len(train_input[k]))] for i in range(len(train_input[k]))])
+    plt.imshow(res)
+    plt.show()
+    print("number = " + str(result_input[k]))
+    print("guessed = " + str(result))
+
+>>>>>>> ac6d669cda0c51b459fc7b219dcb28ecb7c19106
