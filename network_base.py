@@ -1,5 +1,9 @@
 import numpy as np
 
+a=2/3
+b=1.7159
+c=1/(b**2)
+
 def sigmoid(x):
     """Activation function"""
     return  1/(1+np.exp(-x)) #On choisit cette sigmoide car la dérivée est simple
@@ -8,12 +12,10 @@ def dsigmoid(m): #Work in progress do not use
     return m * (np.ones(len(m)) - m)
 
 def tanh(x):
-    return 1.7159*np.tanh(2*x/3)
+    return b*np.tanh(a*x)
 
 def dtanh(m):
-    a=1.7159
-    b=1/(a**2)
-    return a*(2/3)*(np.ones(len(m))-b*m*m)
+    return b*a*(np.ones(len(m))-c*m*m)
 
 def front_prop(inputs, network, weights, bias, activation=tanh):
     """Compute the output of the network
