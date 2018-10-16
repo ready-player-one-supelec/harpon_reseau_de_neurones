@@ -266,7 +266,6 @@ except NameError:
     (train_input,train,result_input,result) = MNIST_test_datas()
  
 
-<<<<<<< HEAD
 def image(k=-1): #Affiche les iamges de MNIST pour peu qu'on ai lancé datas avant 
    if k == -1 :
        k = rd.randint(0,60000-1)
@@ -274,7 +273,6 @@ def image(k=-1): #Affiche les iamges de MNIST pour peu qu'on ai lancé datas ava
    plt.imshow(res)      
   
                   
-=======
 
 def image(k=-1,result =-1): #Affiche les iamges de MNIST pour peu qu'on ai lancé datas avant 
     if k == -1 :
@@ -287,4 +285,3 @@ def image(k=-1,result =-1): #Affiche les iamges de MNIST pour peu qu'on ai lanc�
     print("number = " + str(result_input[k]))
     print("guessed = " + str(result))
 
->>>>>>> ac6d669cda0c51b459fc7b219dcb28ecb7c19106
