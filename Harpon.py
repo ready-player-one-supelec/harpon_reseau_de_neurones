@@ -246,10 +246,10 @@ except NameError:
     (test_input, test, test_result_input, test_result) = MNIST_test_datas()
 
 
-def MNIST_stoch_training(Wi,Bi,reseau,iterations,start,stop,activation,derivee): 
+def MNIST_stoch_training(Wi,Bi,reseau,iterations,start,stop,activation,derivee,vitesse = 0.1): 
     global train_input,train,result_input,result,test_input, test, test_result_input, test_result
     errors = []
-    (W,B,E)= stochastic_training(train[start:stop],result[start:stop],Wi,Bi,.1,reseau,iterations,activation,derivee)
+    (W,B,E)= stochastic_training(train[start:stop],result[start:stop],Wi,Bi,vitesse,reseau,iterations,activation,derivee)
     success = np.array([0,0])
     for i in range(len(test)):
         res = front_prop(test[i],reseau,W,B)
@@ -261,7 +261,7 @@ def MNIST_stoch_training(Wi,Bi,reseau,iterations,start,stop,activation,derivee):
     success =  success[1]/success[0]
     return (W,B,success,errors)
 
-def global_MNIST(points,activation = sigmoid,derivee = dsigmoid,iterations = 3):
+def global_MNIST(points,activation = sigmoid,derivee = dsigmoid,iterations = 3,vitesse = 0.1):
     global train_input,train,result_input,result,test_input, test, test_result_input, test_result
     reseau = [16,16,10]
     W,B = random_w_b(train[0],reseau)
@@ -272,14 +272,14 @@ def global_MNIST(points,activation = sigmoid,derivee = dsigmoid,iterations = 3):
             success[1] +=  1
         success[0] += 1
     success =  success[1]/success[0]
-    success_total = [success]
+    success_total = []
     start = 0
     step = (60000//points)
     stop = step
     it = 0
     indic = 0
     while it < iterations :
-        (W,B,success,errors) = MNIST_stoch_training(W,B,reseau,1,start,stop,activation,derivee)
+        (W,B,success,errors) = MNIST_stoch_training(W,B,reseau,1,start,stop,activation,derivee,vitesse)
         success_total.append(success)
         if stop + step > 60000 :
             start = 0
@@ -292,14 +292,32 @@ def global_MNIST(points,activation = sigmoid,derivee = dsigmoid,iterations = 3):
         print(str(np.round(indic/(points*iterations)*100)) + "  % done")
     return (W,B,success_total,errors)
 
-def super_global_MNIST(points,nbr,derivee = dsigmoid,activation = sigmoid,iterations = 3):
+def trace_global_MNIST(points,nbr,incer = 1,derivee = dsigmoid,activation = sigmoid,iterations = 3):
     list_success = []
     for i in range(nbr):
         (W,B,success_total,errors) = global_MNIST(points,activation,derivee,iterations)
         list_success.append(success_total)
-    return np.array(list_success)
+    list_success = np.array(list_success)
+    Mean=np.average(list_success,0)
+    STD=np.std(list_success,0)
+    plt.plot(Mean,'r', label='Taux de succes sur '+str(nbr)+' apprentissages par itération pour un réseau 16-16-10 en Stochastic learning avec sigma=1/(1+exp(x))')
+    for k in range((points*iterations)//incer):
+        plt.plot([incer*k,incer*k],[ Mean[incer*k]-STD[incer*k]/2, Mean[incer*k] + STD[incer*k]/2 ],'r*-')
+    plt.legend()
+    plt.grid()
+    return list_success
 
-                  
+def trace_vitesses_MNIST(points,vitesses,derivee = dsigmoid,activation = sigmoid,iterations = 3):
+    res = []
+    for i in range(len(vitesses)):
+        vitesse = vitesses[i]
+        (W,B,success_total,errors) = global_MNIST(points,activation,derivee,iterations,vitesse)
+        plt.plot(success_total, label = 'Vitesse de convergence: ' + str(vitesse))
+        res.append(success_total)
+    return res
+    
+#s = trace_global_MNIST(40,50,10)
+s = trace_vitesses_MNIST(3,[0.01,0.05,0.1,0.2],dtanh,tanh)
 
 def image(k=-1,result =-1): #Affiche les iamges de MNIST pour peu qu'on ai lancé datas avant 
     if k == -1 :
