@@ -129,8 +129,8 @@ def stochastic_training(total_inputs,total_ouputs,ini_weight,ini_bias,vitesse,re
             E.append(ee)
             W = [W[i] - vitesse*gW[i] for i in range(len(W))]
             B = [B[i] - vitesse*gB[i] for i in range(len(B))]
-            if i/n*100*(j+1)/iterations%1 == 0 :
-                print(str(i/n*100*(j+1)/iterations) + " % done")
+            #if i/n*100*(j+1)/iterations%1 == 0 :
+            #   print(str(i/n*100*(j+1)/iterations) + " % done")
     return (W,B,E)
 
 
