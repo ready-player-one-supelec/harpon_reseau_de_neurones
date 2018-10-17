@@ -69,6 +69,57 @@ def cost_function(L_inputs,L_th_outputs,reseau,weights,bias,activation=sigmoid):
         cost+=np.linalg.norm(L_th_outputs[k]-output)/2
     return cost/len(L_inputs)
 
+def save_network(network, weights, bias, filename):
+    """Save network parameters in a file
+    Parameters:
+        network: List of p layers sizes
+        weights: List of p Arrays of layer[k]*layer[k+1] weights
+        bias: List of p Arrays of layer[k] bias
+        filename: String naming the saved file
+    """
+    with open(filename, "w") as file:
+        for layer in network:
+            file.write(f"{layer} ")
+        file.write('\n')
+        for layer in weights:
+            for line in layer:
+                for value in line:
+                    file.write(f"{value} ")
+                file.write("|")
+            file.write('$')
+        file.write('\n')
+        for layer in bias:
+            for value in layer:
+                file.write(f'{value} ')
+            file.write('|')
+    return True
+
+def load_network(filename):
+    """Load a network configuration from a file
+    Parameters:
+        filename: String describing file to load
+    Outputs:
+        network: List of p layers sizes
+        weights: List of p Arrays of layer[k]*layer[k+1] weights
+        bias: List of p Arrays of layer[k] bias
+    """
+    with open(filename, "r") as file:
+        # NETWORK
+        network = file.readline().split(' ')[:-1]
+        network = [int(x) for x in network]
+        # WEIGHTS
+        weights = file.readline().split('$')[:-1]
+        weights = [line.split('|')[:-1] for line in weights]
+        weights = [[value.split(' ')[:-1] for value in line] for line in weights]
+        weights = [[[float(x) for x in value] for value in line] for line in weights]
+        weights = [np.array(layer) for layer in weights]
+        # BIAS
+        bias = file.readline().split('|')[:-1]
+        bias = [layer.split(' ')[:-1] for layer in bias]
+        bias = [[float(x) for x in layer] for layer in bias]
+        bias = [np.array(layer) for layer in bias]
+    return network, weights, bias
+
 
 #%% Batch learning
 
