@@ -1,0 +1,7 @@
+# LOCAL
+.vscode
+__pycache__
+
+# DATA
+*.data
+*-idx*
