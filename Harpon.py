@@ -205,7 +205,7 @@ def Global_MNIST(iterations=1, derivee=dsigmoid, activation=sigmoid):
     return (W, B, EE)
 
 # (train_input, train, result_input, result) = MNIST_datas()
-# Global_MNIST(40000)
+Global_MNIST(40000)
 
 
 def image(k=-1): #Affiche les iamges de MNIST pour peu qu'on ai lancé datas avant
