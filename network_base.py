@@ -1,21 +1,19 @@
 import numpy as np
 
-a=2/3
-b=1.7159
-c=1/(b**2)
-
 def sigmoid(x):
     """Activation function"""
     return  1/(1+np.exp(-x)) #On choisit cette sigmoide car la dérivée est simple
 
 def dsigmoid(m): #Work in progress do not use
     return m * (np.ones(len(m)) - m)
-
+    
 def tanh(x):
-    return b*np.tanh(a*x)
+    return 1.7159*np.tanh(2*x/3)
 
 def dtanh(m):
-    return b*a*(np.ones(len(m))-c*m*m)
+    a = 1.7159
+    b = 1/(a**2)
+    return a*(2/3)*(np.ones(len(m))-b*m*m)
 
 def front_prop(inputs, network, weights, bias, activation=tanh):
     """Compute the output of the network
@@ -76,6 +74,9 @@ def random_w_b(inputs, network):
         bias: List of p Arrays of layer[k] bias
     """
     weights = [2*np.random.random((len(inputs), network[0]))-np.ones((len(inputs), network[0]))]+[2*np.random.random((network[k], network[k+1]))-np.ones((network[k], network[k+1])) for k in range(len(network)-1)]
+    
+    #weights = [2*np.zeros((len(inputs), network[0]))-np.zeros((len(inputs), network[0]))]+[2*np.zeros((network[k], network[k+1]))-np.zeros((network[k], network[k+1])) for k in range(len(network)-1)]
+    
     # weights = [1 / np.sqrt(len(inputs)) * np.random.randn(len(inputs), network[0])] + [1 / np.sqrt(len(inputs)) * np.random.randn(network[k], network[k+1]) for k in range(len(network)-1)]
     # bias = [np.zeros(network[k]) for k in range(len(network))]
     bias = [1 / np.sqrt(len(inputs)) * np.random.randn(network[k]) for k in range(len(network))]
