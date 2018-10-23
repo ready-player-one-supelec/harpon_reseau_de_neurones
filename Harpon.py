@@ -155,11 +155,7 @@ def minibatch(L_inputs,L_th_outputs,L_inputs_test,L_th_outputs_test,reseau,weigh
     for N in range(iterations):
         for minibatch in range(len(batchs_L_inputs)):
             batch_training(batchs_L_inputs[minibatch],batchs_L_th_outputs[minibatch],reseau,weights,bias,rate,1,activation,derivee)#change weights et bias dans la fonction
-        #calcul du coup (oui ca prend longtemps du coup :/ ca double le cout en temps presque faudrait modulariser cout() pour y remedier)
-            cost_tot=0
-            for data in range(len(L_inputs_test)):
-                gw,gb,cost = backprop(L_inputs_test[data],L_th_outputs_test[data],reseau,weights,bias,activation,derivee)
-                cost_tot += cost/len(L_inputs_test)
+            cost_tot=cost_function(L_inputs_test[data],L_th_outputs_test[data],reseau,weights,bias,activation,derivee)
             error.append(cost_tot)
     return weights,bias, error
 
@@ -368,8 +364,8 @@ def trace_vitesses_MNIST(points,vitesses,derivee = dsigmoid,activation = sigmoid
         res.append(success_total)
     return res
     
-#s = trace_global_MNIST(40,50,10)
-s = trace_vitesses_MNIST(3,[0.01,0.05,0.1,0.2],dtanh,tanh)
+# s = trace_global_MNIST(40,50,10)
+# s = trace_vitesses_MNIST(3,[0.01,0.05,0.1,0.2],dtanh,tanh)
 
 def image(k=-1,result =-1): #Affiche les iamges de MNIST pour peu qu'on ai lanc√© datas avant 
     if k == -1 :
@@ -382,3 +378,33 @@ def image(k=-1,result =-1): #Affiche les iamges de MNIST pour peu qu'on ai lanc√
     print("number = " + str(result_input[k]))
     print("guessed = " + str(result))
 
+def MNIST_minibatch(L_inputs,L_th_outputs,reseau,rate,iterations,batchsize,runs,activation = sigmoid,derivee = dsigmoid):
+    #creation de plus petites listes (minibatchs)
+    batchs_L_inputs=[]
+    batchs_L_th_outputs=[]
+    for k in range(len(L_inputs)):
+        if k%batchsize==0:
+            batchs_L_inputs.append([])
+            batchs_L_th_outputs.append([])
+        batchs_L_inputs[-1].append(L_inputs[k])
+        batchs_L_th_outputs[-1].append(L_th_outputs[k])
+    print("Initialisation ok")
+    errors=np.zeros((runs,iterations*len(batchs_L_inputs)))
+    for run in range(runs):
+        weights,bias=random_w_b(L_inputs[0],reseau)
+        for N in range(iterations):
+            for minibatch in range(len(batchs_L_inputs)):
+                print(N,minibatch)
+                batch_training(batchs_L_inputs[minibatch],batchs_L_th_outputs[minibatch],reseau,weights,bias,rate,1,activation,derivee)#change weights et bias dans la fonction
+                success=0
+                for i in range(len(test)):
+                    res = front_prop(test[i],reseau,weights,bias)
+                    if res[-1][test_result_input[i]] == np.max(res[-1]):
+                        success +=  1
+            errors[run][N*len(batchs_L_inputs)+minibatch] =  success/len(test)
+    return errors
+
+erreur = MNIST_minibatch(train[:5000],result[:5000],[16,16,10],0.2,1,100,1)
+print(erreur[0])
+plt.plot(erreur[0])
+plt.show()

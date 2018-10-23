@@ -5,4 +5,4 @@ conf.py
 
 # DATA
 *.data
-*-idx*
+*-ubyte
