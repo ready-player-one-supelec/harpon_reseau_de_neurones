@@ -196,7 +196,7 @@ def MNIST_stoch_training(train_input, train, result_input, result, reseau, nbr):
     (W, B) = random_w_b(train[0], reseau)
     print("Ending generating weight and bias")
     print("Starting training neural network")
-    (nW, nB, E) = stochastic_training(train[:nbr], result[:nbr], W, B, 0.05, reseau, iterations=1)
+    (nW, nB, E) = stochastic_training(train[:nbr], result[:nbr], W, B, 1, reseau, iterations=1)
     print("Ending training neural network")
     return (nW, nB, E)
     
@@ -205,7 +205,7 @@ def MNIST_stoch_training_v2(train_input, train, result_input, result, reseau, nb
     (W, B) = random_w_b(train[0], reseau)
     print("Ending generating weight and bias")
     print("Starting training neural network")
-    (nW, nB, E, R) = stochastic_training_v2(train[:nbr], result[:nbr], W, B, 0.05, reseau, iterations, error_mesures)
+    (nW, nB, E, R) = stochastic_training_v2(train[:nbr], result[:nbr], W, B, 0.001, reseau, iterations, error_mesures)
     print("Ending training neural network")
     return (nW, nB, E, R)
 

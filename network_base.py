@@ -15,7 +15,7 @@ def dtanh(m):
     b = 1/(a**2)
     return a*(2/3)*(np.ones(len(m))-b*m*m)
 
-def front_prop(inputs, network, weights, bias, activation=tanh):
+def front_prop(inputs, network, weights, bias, activation=sigmoid):
     """Compute the output of the network
     Parameters:
         inputs: List of n Arrays input of size m
@@ -36,7 +36,7 @@ def front_prop(inputs, network, weights, bias, activation=tanh):
     return list_out
 
 
-def backprop(inputs, th_output, network, weights, bias, derivative=dtanh):
+def backprop(inputs, th_output, network, weights, bias, derivative=dsigmoid):
     """Compute the network bias and weight gradient
     Parameters:
         inputs: List of n Arrays input of size m
@@ -73,13 +73,14 @@ def random_w_b(inputs, network):
         weights: List of p Arrays of layer[k]*layer[k+1] weights
         bias: List of p Arrays of layer[k] bias
     """
-    weights = [2*np.random.random((len(inputs), network[0]))-np.ones((len(inputs), network[0]))]+[2*np.random.random((network[k], network[k+1]))-np.ones((network[k], network[k+1])) for k in range(len(network)-1)]
+    #weights=[2*np.random.random((len(inputs),network[0]))-np.ones((len(inputs),network[0]))]+[2*np.random.random((network[k],network[k+1]))-np.ones((network[k],network[k+1])) for k in range(len(network)-1)]
     
     #weights = [2*np.zeros((len(inputs), network[0]))-np.zeros((len(inputs), network[0]))]+[2*np.zeros((network[k], network[k+1]))-np.zeros((network[k], network[k+1])) for k in range(len(network)-1)]
     
-    # weights = [1 / np.sqrt(len(inputs)) * np.random.randn(len(inputs), network[0])] + [1 / np.sqrt(len(inputs)) * np.random.randn(network[k], network[k+1]) for k in range(len(network)-1)]
-    # bias = [np.zeros(network[k]) for k in range(len(network))]
-    bias = [1 / np.sqrt(len(inputs)) * np.random.randn(network[k]) for k in range(len(network))]
+    weights=[(2*np.random.random((len(inputs),network[0]))-np.ones((len(inputs),network[0])))*np.sqrt(3/len(inputs))]+[(2*np.random.random((network[k],network[k+1]))-np.ones((network[k],network[k+1])))*np.sqrt(3/network[k]) for k in range(len(network)-1)]
+    
+    bias = [np.zeros(network[k]) for k in range(len(network))]
+    # bias = [1 / np.sqrt(len(inputs)) * np.random.randn(network[k]) for k in range(len(network))]
     return weights, bias
 
 def save_network(network, weights, bias, filename):
